@@ -65,10 +65,10 @@ class TrafficSimulator:
 
         # Target densities matching real intersections (North heaviest, South lightest)
         self.target_densities = {
-            'NORTH': 18,
-            'EAST': 13,
-            'SOUTH': 6,
-            'WEST': 16
+            'NORTH': 19,
+            'WEST': 15,
+            'EAST': 10,
+            'SOUTH': 6
         }
 
         # Initialize realistic vehicle volume for all lanes

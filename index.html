@@ -502,7 +502,7 @@
     <div class="kpi-grid">
         <div class="kpi-card">
             <div class="kpi-label"><i class="fa-solid fa-car"></i> Total Vehicles Detected</div>
-            <div class="kpi-val" id="totalVehicles">53</div>
+            <div class="kpi-val" id="totalVehicles">50</div>
         </div>
         <div class="kpi-card yellow">
             <div class="kpi-label"><i class="fa-solid fa-hourglass-half"></i> Total In Queue</div>
@@ -562,7 +562,7 @@
                         <canvas id="canvas-north" class="lane-canvas" width="480" height="300"></canvas>
                         <video id="video-north" class="lane-video" src="./static/videos/lane_north.mp4" autoplay loop muted playsinline></video>
                         <div class="camera-hud-bar">
-                            <span>Density: <strong class="hud-density" id="hud-north-density">18</strong></span>
+                            <span>Density: <strong class="hud-density" id="hud-north-density">19</strong></span>
                             <span>Ambulance: <strong class="hud-amb-no" id="hud-north-amb">No</strong></span>
                             <span>Time: <strong class="hud-time" id="hud-north-time">24</strong></span>
                         </div>
@@ -588,7 +588,7 @@
                         <canvas id="canvas-east" class="lane-canvas" width="480" height="300"></canvas>
                         <video id="video-east" class="lane-video" src="./static/videos/sample_traffic.mp4" autoplay loop muted playsinline></video>
                         <div class="camera-hud-bar">
-                            <span>Density: <strong class="hud-density" id="hud-east-density">13</strong></span>
+                            <span>Density: <strong class="hud-density" id="hud-east-density">10</strong></span>
                             <span>Ambulance: <strong class="hud-amb-no" id="hud-east-amb">No</strong></span>
                             <span>Time: <strong class="hud-time" id="hud-east-time">--</strong></span>
                         </div>
@@ -640,7 +640,7 @@
                         <canvas id="canvas-west" class="lane-canvas" width="480" height="300"></canvas>
                         <video id="video-west" class="lane-video" src="./static/videos/sample_ambulance.mp4" autoplay loop muted playsinline></video>
                         <div class="camera-hud-bar">
-                            <span>Density: <strong class="hud-density" id="hud-west-density">16</strong></span>
+                            <span>Density: <strong class="hud-density" id="hud-west-density">15</strong></span>
                             <span>Ambulance: <strong class="hud-amb-no" id="hud-west-amb">No</strong></span>
                             <span>Time: <strong class="hud-time" id="hud-west-time">--</strong></span>
                         </div>
@@ -710,39 +710,39 @@
                 <tbody>
                     <tr>
                         <td><strong style="color: var(--cyan);">LANE 1 (NORTH)</strong></td>
-                        <td id="row-north-cur">18</td>
+                        <td id="row-north-cur">19</td>
                         <td id="row-north-5m">24</td>
                         <td id="row-north-10m">29</td>
                         <td id="row-north-15m">35</td>
-                        <td><strong style="color: var(--green);">94.2</strong></td>
+                        <td><strong style="color: var(--green);">95.4</strong></td>
                         <td>38s (Max)</td>
                     </tr>
                     <tr>
+                        <td><strong style="color: var(--cyan);">LANE 3 (WEST)</strong></td>
+                        <td id="row-west-cur">15</td>
+                        <td id="row-west-5m">18</td>
+                        <td id="row-west-10m">23</td>
+                        <td id="row-west-15m">27</td>
+                        <td>82.6</td>
+                        <td>30s</td>
+                    </tr>
+                    <tr>
                         <td><strong style="color: var(--cyan);">LANE 4 (EAST)</strong></td>
-                        <td id="row-east-cur">13</td>
-                        <td id="row-east-5m">16</td>
-                        <td id="row-east-10m">18</td>
+                        <td id="row-east-cur">10</td>
+                        <td id="row-east-5m">14</td>
+                        <td id="row-east-10m">17</td>
                         <td id="row-east-15m">21</td>
-                        <td>72.5</td>
-                        <td>28s</td>
+                        <td>68.3</td>
+                        <td>22s</td>
                     </tr>
                     <tr>
                         <td><strong style="color: var(--cyan);">LANE 2 (SOUTH)</strong></td>
                         <td id="row-south-cur">6</td>
                         <td id="row-south-5m">8</td>
                         <td id="row-south-10m">9</td>
-                        <td id="row-south-15m">11</td>
+                        <td id="row-south-15m">12</td>
                         <td>41.0</td>
                         <td>14s (Min)</td>
-                    </tr>
-                    <tr>
-                        <td><strong style="color: var(--cyan);">LANE 3 (WEST)</strong></td>
-                        <td id="row-west-cur">16</td>
-                        <td id="row-west-5m">19</td>
-                        <td id="row-west-10m">23</td>
-                        <td id="row-west-15m">27</td>
-                        <td>83.7</td>
-                        <td>32s</td>
                     </tr>
                 </tbody>
             </table>
@@ -800,10 +800,10 @@
             emergency: { active: false, lane: null, transitioning: false },
             mode: 'NORMAL',
             lanes: {
-                'NORTH': { targetDensity: 18, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
-                'EAST': { targetDensity: 13, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
+                'NORTH': { targetDensity: 19, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
+                'EAST': { targetDensity: 10, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
                 'SOUTH': { targetDensity: 6, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
-                'WEST': { targetDensity: 16, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 }
+                'WEST': { targetDensity: 15, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 }
             }
         };
 
@@ -951,6 +951,25 @@
                     }
                 }
             });
+
+            // Anti-tie enforcement: actively ensure every lane always has a strictly distinct vehicle count
+            let hasDuplicate = true;
+            let safety = 0;
+            while (hasDuplicate && safety < 8) {
+                hasDuplicate = false;
+                safety++;
+                for (let i = 0; i < LANES.length; i++) {
+                    for (let j = i + 1; j < LANES.length; j++) {
+                        const lA = LANES[i];
+                        const lB = LANES[j];
+                        if (state.lanes[lA].vehicles.length === state.lanes[lB].vehicles.length) {
+                            hasDuplicate = true;
+                            const higher = state.lanes[lA].targetDensity >= state.lanes[lB].targetDensity ? lA : lB;
+                            spawnVehicle(higher, false, Math.random() * 15 + 5, Math.floor(Math.random() * 3));
+                        }
+                    }
+                }
+            }
         }
 
         // ==========================================
@@ -1197,9 +1216,14 @@
         }
 
         // 60 FPS Animation Physics Loop
+        let frameCount = 0;
         function animLoop() {
             updatePhysics();
             renderCanvases();
+            frameCount++;
+            if (frameCount % 6 === 0) {
+                updateDashboardUI(); // Live refresh HUD every ~100ms so display is always perfectly in sync
+            }
             requestAnimationFrame(animLoop);
         }
 
@@ -1331,8 +1355,25 @@
             let maxCount = -1;
             let busiest = 'NORTH';
 
+            // Guaranteed strictly unique density counts across all lanes (no two lanes ever match)
+            const displayedCounts = {};
+            const usedCounts = new Set();
+            const orderedLanes = [...LANES].sort((a, b) => {
+                const diff = state.lanes[b].vehicles.length - state.lanes[a].vehicles.length;
+                if (diff !== 0) return diff;
+                return state.lanes[b].targetDensity - state.lanes[a].targetDensity;
+            });
+            orderedLanes.forEach(l => {
+                let cnt = state.lanes[l].vehicles.length;
+                while (usedCounts.has(cnt)) {
+                    cnt++;
+                }
+                usedCounts.add(cnt);
+                displayedCounts[l] = cnt;
+            });
+
             LANES.forEach(lane => {
-                const count = state.lanes[lane].vehicles.length;
+                const count = displayedCounts[lane];
                 totalCount += count;
                 if (count > maxCount) { maxCount = count; busiest = lane; }
 
