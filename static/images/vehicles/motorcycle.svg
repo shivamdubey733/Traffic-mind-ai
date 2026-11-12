@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 58" width="26" height="58">
+  <defs>
+    <filter id="moto-shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+    <linearGradient id="tank-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="40%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#991b1b"/>
+    </linearGradient>
+    <linearGradient id="helmet-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="50%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+
+  <g filter="url(#moto-shadow)">
+    <!-- 1. Front Tire & Rim -->
+    <rect x="11.5" y="2" width="3" height="12" rx="1.5" fill="#0f172a"/>
+    <line x1="13" y1="4" x2="13" y2="12" stroke="#94a3b8" stroke-width="0.8"/>
+    <!-- Front Disc Brake Rotor -->
+    <circle cx="13" cy="8" r="2.2" fill="#cbd5e1" stroke="#475569" stroke-width="0.5"/>
+
+    <!-- Front Telescopic Forks -->
+    <line x1="10.5" y1="5" x2="10.5" y2="13" stroke="#64748b" stroke-width="1"/>
+    <line x1="15.5" y1="5" x2="15.5" y2="13" stroke="#64748b" stroke-width="1"/>
+
+    <!-- Front Projector Headlight -->
+    <path d="M 11 11 Q 13 9 15 11" stroke="#38bdf8" stroke-width="1.5" fill="none"/>
+
+    <!-- Handlebars with Grips & Teardrop Mirrors -->
+    <path d="M 4 14 Q 13 16 22 14" stroke="#0f172a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <!-- Rubber Handgrips -->
+    <rect x="2.5" y="12.5" width="3" height="3" rx="1" fill="#1e293b"/>
+    <rect x="20.5" y="12.5" width="3" height="3" rx="1" fill="#1e293b"/>
+    <!-- Teardrop Mirrors -->
+    <circle cx="2" cy="11" r="1.5" fill="#38bdf8" stroke="#0f172a" stroke-width="0.6"/>
+    <circle cx="24" cy="11" r="1.5" fill="#38bdf8" stroke="#0f172a" stroke-width="0.6"/>
+
+    <!-- Digital Dash Instrument Console -->
+    <rect x="11" y="14" width="4" height="2.5" rx="0.5" fill="#0f172a"/>
+    <rect x="11.5" y="14.5" width="3" height="1.5" fill="#38bdf8"/>
+
+    <!-- Sculpted Sports Fuel Tank -->
+    <path d="M 10 17 
+             C 8 20, 8 25, 10 28 
+             L 16 28 
+             C 18 25, 18 20, 16 17 Z" 
+          fill="url(#tank-grad)" 
+          stroke="#7f1d1d" 
+          stroke-width="0.8"/>
+    <!-- Tank Cap -->
+    <circle cx="13" cy="20" r="1.2" fill="#cbd5e1" stroke="#0f172a" stroke-width="0.4"/>
+
+    <!-- Rider Torso & Motorcycle Jacket -->
+    <!-- Shoulders -->
+    <ellipse cx="13" cy="33" rx="8" ry="4.5" fill="#1e293b" stroke="#0f172a" stroke-width="0.8"/>
+    <path d="M 7 32 Q 13 36 19 32" stroke="#ef4444" stroke-width="1" fill="none"/>
+
+    <!-- Rider Helmet with Aerodynamic Visor -->
+    <ellipse cx="13" cy="29" rx="4.8" ry="5.5" fill="url(#helmet-grad)" stroke="#0f172a" stroke-width="0.8"/>
+    <!-- Smoked Tinted Visor -->
+    <path d="M 9.5 26 Q 13 23 16.5 26" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+    <path d="M 10.5 26 Q 13 24 15.5 26" stroke="#ffffff" stroke-width="0.8" stroke-linecap="round" fill="none"/>
+
+    <!-- Motorcycle Seat & Rear Tail Fairing -->
+    <path d="M 10 37 L 16 37 L 15 48 L 11 48 Z" fill="#0f172a"/>
+    <path d="M 11 42 L 15 42 L 14 47 L 12 47 Z" fill="#dc2626"/>
+
+    <!-- Right Side Chrome Exhaust Pipe -->
+    <rect x="17.5" y="38" width="2.5" height="13" rx="1.2" fill="#cbd5e1" stroke="#64748b" stroke-width="0.6"/>
+    <circle cx="18.7" cy="50" r="0.8" fill="#0f172a"/>
+
+    <!-- Wide Rear Tire -->
+    <rect x="11" y="44" width="4" height="12" rx="2" fill="#0f172a"/>
+    <line x1="13" y1="46" x2="13" y2="54" stroke="#94a3b8" stroke-width="0.8"/>
+
+    <!-- Rear LED Taillight & License Plate -->
+    <rect x="11.5" y="48" width="3" height="1.8" rx="0.5" fill="#ef4444"/>
+    <rect x="11.5" y="55" width="3" height="1.5" fill="#f8fafc"/>
+  </g>
+</svg>

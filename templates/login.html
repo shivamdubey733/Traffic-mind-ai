@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrafficMind AI - Operator Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-body">
+    <div class="login-card">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div class="brand-icon" style="margin: 0 auto 12px; width: 48px; height: 48px; font-size: 1.5rem;">
+                <i class="fa-solid fa-traffic-light"></i>
+            </div>
+            <h2 style="font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px;">TrafficMind <span style="color: #06b6d4;">AI</span></h2>
+            <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 4px;">Predictive Intelligent Traffic Management System</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 1rem;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('login') }}" method="POST">
+            <div class="form-group">
+                <label for="username"><i class="fa-solid fa-user"></i> Operator ID</label>
+                <input type="text" id="username" name="username" class="form-input" value="admin" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password"><i class="fa-solid fa-lock"></i> Security Key / Password</label>
+                <input type="password" id="password" name="password" class="form-input" value="admin123" required>
+            </div>
+
+            <button type="submit" class="btn-custom btn-cyan" style="width: 100%; justify-content: center; padding: 12px; font-size: 1rem; margin-top: 0.5rem;">
+                <i class="fa-solid fa-shield-halved"></i> Access Command Center
+            </button>
+        </form>
+
+        <div style="margin-top: 1.5rem; text-align: center; font-size: 0.78rem; color: #64748b;">
+            College Ideathon Demonstration Build &bull; Default: <code style="color: #06b6d4;">admin / admin123</code>
+        </div>
+    </div>
+</body>
+</html>

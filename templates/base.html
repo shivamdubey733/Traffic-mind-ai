@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TrafficMind AI - Smart City ITMS{% endblock %}</title>
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Socket.IO & Chart.js -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Emergency Preemption Alert Banner -->
+    <div id="emergency-banner" class="emergency-banner">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fa-solid fa-triangle-exclamation fa-beat" style="font-size: 1.3rem;"></i>
+            <span id="emergency-banner-text">EMERGENCY VEHICLE PREEMPTION ACTIVE</span>
+        </div>
+        <button class="btn-custom btn-danger" onclick="clearEmergency()" style="padding: 4px 12px; font-size: 0.8rem;">
+            <i class="fa-solid fa-check"></i> Clear Priority
+        </button>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar-custom">
+        <a href="{{ url_for('dashboard') }}" class="brand-wrapper">
+            <div class="brand-icon">
+                <i class="fa-solid fa-traffic-light"></i>
+            </div>
+            <div class="brand-title">
+                TrafficMind <span>AI</span>
+            </div>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('analytics') }}" class="{% if request.endpoint == 'analytics' %}active{% endif %}"><i class="fa-solid fa-chart-line"></i> Analytics</a></li>
+            <li><a href="{{ url_for('simulation_view') }}" class="{% if request.endpoint == 'simulation_view' %}active{% endif %}"><i class="fa-solid fa-microchip"></i> Simulation Lab</a></li>
+            <li><a href="{{ url_for('settings_view') }}" class="{% if request.endpoint == 'settings_view' %}active{% endif %}"><i class="fa-solid fa-sliders"></i> Settings</a></li>
+        </ul>
+
+        <div class="nav-status">
+            <span id="sys-status-badge" class="pulse-badge">
+                <span class="pulse-dot"></span> LIVE ONLINE
+            </span>
+            <span id="live-clock" style="font-size: 0.82rem; color: #94a3b8; font-family: monospace;">--:--:--</span>
+            <a href="{{ url_for('logout') }}" title="Logout" style="color: #94a3b8; font-size: 1rem; margin-left: 8px;">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="background: rgba(6, 182, 212, 0.15); border: 1px solid #06b6d4; color: #fff; padding: 10px 16px; border-radius: 8px; margin-bottom: 1.25rem;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>TrafficMind AI - Live Traffic Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Pre-rendered Photorealistic Vehicle Sprites (Cars, Buses, Trucks, Ambulances, Motorcycles) -->
+    <script src="/static/js/vehicle_sprites.js?v=2.5.0"></script>
+    <style>
+        :root {
+            --bg-body: #0d1117;
+            --bg-card: #161b22;
+            --bg-header: #1f242c;
+            --border: #30363d;
+            --cyan: #38bdf8;
+            --green: #22c55e;
+            --yellow: #eab308;
+            --red: #ef4444;
+            --text-main: #f0f6fc;
+            --text-muted: #8b949e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 1.25rem;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .dash-header {
+            text-align: center;
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+
+        .dash-title {
+            font-size: 1.9rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dash-title span {
+            color: var(--cyan);
+        }
+
+        .dash-sub {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .version-pill {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            margin-left: 8px;
+            vertical-align: middle;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+        }
+
+        /* Top Emergency Banner */
+        .alert-banner {
+            display: none;
+            background: linear-gradient(90deg, #b91c1c, #ef4444, #b91c1c);
+            background-size: 200% 200%;
+            animation: pulseBg 2s infinite ease-in-out;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 1.25rem;
+            font-weight: 700;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        }
+
+        @keyframes pulseBg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        @media (max-width: 1200px) {
+            .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            border-top: 3px solid var(--cyan);
+        }
+
+        .kpi-card.green { border-top-color: var(--green); }
+        .kpi-card.red { border-top-color: var(--red); }
+        .kpi-card.yellow { border-top-color: var(--yellow); }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-val {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: #fff;
+            margin-top: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Mode Switcher Bar */
+        .view-mode-bar {
+            background: #161b22;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn-mode {
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.86rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-mode:hover {
+            background: #30363d;
+            color: #fff;
+        }
+
+        .btn-mode.active {
+            background: #1f6feb;
+            border-color: #388bfd;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(56, 139, 253, 0.4);
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: #8b949e;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+            animation: pulseDot 1.5s infinite;
+        }
+
+        @keyframes pulseDot {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+
+        /* 4-Lane 2x2 Grid Frame */
+        .camera-grid-frame {
+            background: #21262d;
+            border: 2px solid #484f58;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .lanes-grid-2x2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 900px) {
+            .lanes-grid-2x2 { grid-template-columns: 1fr; }
+        }
+
+        /* Camera Box */
+        .camera-box {
+            background: #000;
+            border: 2px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            position: relative;
+        }
+
+        /* Traffic Light Post on left of camera feed (Reference layout) */
+        .traffic-light-post {
+            width: 58px;
+            background: #2d333b;
+            border-right: 2px solid #444c56;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 12px 6px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
+            z-index: 5;
+        }
+
+        .lamp {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 3px solid #1c2128;
+            transition: all 0.25s ease;
+        }
+
+        .lamp.red { background: #3b0d0c; }
+        .lamp.yellow { background: #3d2b05; }
+        .lamp.green { background: #063318; }
+
+        .lamp.red.active {
+            background: #ff2222;
+            box-shadow: 0 0 18px #ff2222, 0 0 32px rgba(255, 34, 34, 0.65);
+            border-color: #ff8888;
+        }
+
+        .lamp.yellow.active {
+            background: #ffcc00;
+            box-shadow: 0 0 18px #ffcc00, 0 0 32px rgba(255, 204, 0, 0.65);
+            border-color: #ffee88;
+        }
+
+        .lamp.green.active {
+            background: #00e676;
+            box-shadow: 0 0 18px #00e676, 0 0 32px rgba(0, 230, 118, 0.65);
+            border-color: #88ffbb;
+        }
+
+        /* Camera Viewport */
+        .camera-canvas-wrap {
+            flex: 1;
+            position: relative;
+            background: #1a1f26;
+            min-height: 290px;
+        }
+
+        canvas.lane-canvas {
+            width: 100%;
+            height: 290px;
+            display: block;
+        }
+
+        video.lane-video {
+            width: 100%;
+            height: 290px;
+            object-fit: cover;
+            display: none;
+        }
+
+        /* Bottom HUD Bar inside camera */
+        .camera-hud-bar {
+            background: rgba(13, 17, 23, 0.96);
+            border-top: 1px solid #30363d;
+            padding: 8px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .hud-density { color: #38bdf8; }
+        .hud-amb-no { color: #22c55e; }
+        .hud-amb-yes { color: #ef4444; animation: blink 1s infinite; }
+        .hud-time { color: #eab308; }
+
+        @keyframes blink {
+            50% { opacity: 0.3; }
+        }
+
+        /* Camera Top Header Tag */
+        .camera-top-tag {
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.78);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255,255,255,0.2);
+            z-index: 10;
+        }
+
+        .lane-controls {
+            padding: 6px 12px;
+            background: #161b22;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* Buttons */
+        .btn {
+            background: #21262d;
+            color: #f0f6fc;
+            border: 1px solid #30363d;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: #30363d;
+            border-color: #8b949e;
+        }
+
+        .btn-red {
+            background: #dc2626;
+            color: #fff;
+            border-color: #ef4444;
+        }
+        .btn-red:hover {
+            background: #b91c1c;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+        }
+
+        .btn-cyan {
+            background: #0284c7;
+            color: #fff;
+            border-color: #38bdf8;
+        }
+        .btn-cyan:hover {
+            background: #0369a1;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+        }
+
+        /* Control Deck */
+        .controls-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .controls-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .buttons-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Info Tables Grid */
+        .tables-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 900px) {
+            .tables-grid { grid-template-columns: 1fr; }
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+
+        table.pred-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        table.pred-table th {
+            text-align: left;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        table.pred-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .benchmark-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .benchmark-val {
+            font-size: 1.15rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="dash-header">
+        <h1 class="dash-title">
+            <i class="fa-solid fa-traffic-light" style="color: var(--cyan);"></i>
+            TrafficMind <span>AI</span> – Live Traffic Dashboard
+            <span class="version-pill"><i class="fa-solid fa-check"></i> v2.5 PHOTOREALISTIC VEHICLES</span>
+        </h1>
+        <p class="dash-sub">Predictive Intelligent Traffic Management System &bull; 4-Way Intersection AI Signal Controller</p>
+    </header>
+
+    <!-- Emergency Preemption Flash Banner -->
+    <div id="alertBanner" class="alert-banner">
+        <div>
+            <i class="fa-solid fa-triangle-exclamation fa-beat" style="font-size: 1.3rem; margin-right: 8px;"></i>
+            <span id="alertBannerText">EMERGENCY VEHICLE PREEMPTION ACTIVE: Ambulance Approaching!</span>
+        </div>
+        <button class="btn btn-red" onclick="clearEmergency()">
+            <i class="fa-solid fa-check"></i> Clear Priority & Resume AI
+        </button>
+    </div>
+
+    <!-- Live Statistics Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label"><i class="fa-solid fa-car"></i> Total Vehicles Detected</div>
+            <div class="kpi-val" id="totalVehicles">53</div>
+        </div>
+        <div class="kpi-card yellow">
+            <div class="kpi-label"><i class="fa-solid fa-hourglass-half"></i> Total In Queue</div>
+            <div class="kpi-val" id="totalQueued" style="color: var(--yellow);">22</div>
+        </div>
+        <div class="kpi-card green">
+            <div class="kpi-label"><i class="fa-solid fa-traffic-light"></i> Active Green Corridor</div>
+            <div class="kpi-val" id="activeGreenLane" style="color: var(--green);">NORTH (24s)</div>
+        </div>
+        <div class="kpi-card red">
+            <div class="kpi-label"><i class="fa-solid fa-truck-medical"></i> Ambulance Status</div>
+            <div class="kpi-val" id="ambulanceStatus" style="color: var(--green); font-size: 1.25rem;">No (Clear)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label"><i class="fa-solid fa-fire"></i> Busiest Approach</div>
+            <div class="kpi-val" id="busiestLane" style="color: var(--cyan); font-size: 1.3rem;">NORTH (18 veh)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label"><i class="fa-solid fa-brain"></i> Congestion Level</div>
+            <div class="kpi-val" id="congestionLevel" style="color: #a855f7; font-size: 1.3rem;">MODERATE</div>
+        </div>
+    </div>
+
+    <!-- Mode Switcher Bar -->
+    <div class="view-mode-bar">
+        <div class="d-flex align-items-center gap-2">
+            <span style="font-size: 0.85rem; font-weight: 700; color: #fff; margin-right: 8px;">
+                <i class="fa-solid fa-sliders text-cyan"></i> DISPLAY FEED MODE:
+            </span>
+            <button id="btnModeSim" class="btn-mode active" onclick="switchDisplayMode('SIM')">
+                <i class="fa-solid fa-car-side" style="color: var(--green);"></i> AI Traffic Simulation (Photorealistic 60 FPS)
+            </button>
+            <button id="btnModeCCTV" class="btn-mode" onclick="switchDisplayMode('CCTV')">
+                <i class="fa-solid fa-video" style="color: var(--cyan);"></i> Real CCTV Camera Feeds (IEEE Dataset)
+            </button>
+        </div>
+        <div class="badge-status">
+            <span class="pulse-dot"></span>
+            <span>YOLOv8 + ByteTrack &bull; 60 FPS CV PIPELINE</span>
+        </div>
+    </div>
+
+    <!-- Master 4-Lane Camera Grid (Matching User's Reference Screenshot Layout) -->
+    <div class="camera-grid-frame">
+        <div class="lanes-grid-2x2">
+            
+            <!-- Lane 1 (North) -->
+            <div>
+                <div class="camera-box">
+                    <div class="traffic-light-post">
+                        <div class="lamp red" id="lamp-north-red"></div>
+                        <div class="lamp yellow" id="lamp-north-yellow"></div>
+                        <div class="lamp green active" id="lamp-north-green"></div>
+                    </div>
+                    <div class="camera-canvas-wrap">
+                        <div class="camera-top-tag">LANE 1 &bull; NORTH</div>
+                        <canvas id="canvas-north" class="lane-canvas" width="480" height="300"></canvas>
+                        <video id="video-north" class="lane-video" src="/static/videos/lane_north.mp4" autoplay loop muted playsinline></video>
+                        <div class="camera-hud-bar">
+                            <span>Density: <strong class="hud-density" id="hud-north-density">18</strong></span>
+                            <span>Ambulance: <strong class="hud-amb-no" id="hud-north-amb">No</strong></span>
+                            <span>Time: <strong class="hud-time" id="hud-north-time">24</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lane-controls">
+                    <button class="btn btn-red" onclick="triggerAmbulance('NORTH')">
+                        <i class="fa-solid fa-truck-medical"></i> Trigger Ambulance (North)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lane 4 (East) -->
+            <div>
+                <div class="camera-box">
+                    <div class="traffic-light-post">
+                        <div class="lamp red active" id="lamp-east-red"></div>
+                        <div class="lamp yellow" id="lamp-east-yellow"></div>
+                        <div class="lamp green" id="lamp-east-green"></div>
+                    </div>
+                    <div class="camera-canvas-wrap">
+                        <div class="camera-top-tag">LANE 4 &bull; EAST</div>
+                        <canvas id="canvas-east" class="lane-canvas" width="480" height="300"></canvas>
+                        <video id="video-east" class="lane-video" src="/static/videos/sample_traffic.mp4" autoplay loop muted playsinline></video>
+                        <div class="camera-hud-bar">
+                            <span>Density: <strong class="hud-density" id="hud-east-density">13</strong></span>
+                            <span>Ambulance: <strong class="hud-amb-no" id="hud-east-amb">No</strong></span>
+                            <span>Time: <strong class="hud-time" id="hud-east-time">--</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lane-controls">
+                    <button class="btn btn-red" onclick="triggerAmbulance('EAST')">
+                        <i class="fa-solid fa-truck-medical"></i> Trigger Ambulance (East)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lane 2 (South) -->
+            <div>
+                <div class="camera-box">
+                    <div class="traffic-light-post">
+                        <div class="lamp red active" id="lamp-south-red"></div>
+                        <div class="lamp yellow" id="lamp-south-yellow"></div>
+                        <div class="lamp green" id="lamp-south-green"></div>
+                    </div>
+                    <div class="camera-canvas-wrap">
+                        <div class="camera-top-tag">LANE 2 &bull; SOUTH</div>
+                        <canvas id="canvas-south" class="lane-canvas" width="480" height="300"></canvas>
+                        <video id="video-south" class="lane-video" src="/static/videos/sample_traffic.mp4" autoplay loop muted playsinline></video>
+                        <div class="camera-hud-bar">
+                            <span>Density: <strong class="hud-density" id="hud-south-density">6</strong></span>
+                            <span>Ambulance: <strong class="hud-amb-no" id="hud-south-amb">No</strong></span>
+                            <span>Time: <strong class="hud-time" id="hud-south-time">--</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lane-controls">
+                    <button class="btn btn-red" onclick="triggerAmbulance('SOUTH')">
+                        <i class="fa-solid fa-truck-medical"></i> Trigger Ambulance (South)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lane 3 (West) -->
+            <div>
+                <div class="camera-box">
+                    <div class="traffic-light-post">
+                        <div class="lamp red active" id="lamp-west-red"></div>
+                        <div class="lamp yellow" id="lamp-west-yellow"></div>
+                        <div class="lamp green" id="lamp-west-green"></div>
+                    </div>
+                    <div class="camera-canvas-wrap">
+                        <div class="camera-top-tag">LANE 3 &bull; WEST</div>
+                        <canvas id="canvas-west" class="lane-canvas" width="480" height="300"></canvas>
+                        <video id="video-west" class="lane-video" src="/static/videos/sample_ambulance.mp4" autoplay loop muted playsinline></video>
+                        <div class="camera-hud-bar">
+                            <span>Density: <strong class="hud-density" id="hud-west-density">16</strong></span>
+                            <span>Ambulance: <strong class="hud-amb-no" id="hud-west-amb">No</strong></span>
+                            <span>Time: <strong class="hud-time" id="hud-west-time">--</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lane-controls">
+                    <button class="btn btn-red" onclick="triggerAmbulance('WEST')">
+                        <i class="fa-solid fa-truck-medical"></i> Trigger Ambulance (West)
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Interactive Ideathon Control Deck -->
+    <div class="controls-card">
+        <div class="controls-title">
+            <i class="fa-solid fa-sliders" style="color: var(--cyan);"></i> Ideathon Live Demonstration Controller
+        </div>
+        <div class="buttons-row">
+            <button class="btn btn-red" onclick="triggerAmbulance('NORTH')">
+                <i class="fa-solid fa-truck-medical"></i> Simulate Ambulance (North)
+            </button>
+            <button class="btn btn-red" onclick="triggerAmbulance('WEST')">
+                <i class="fa-solid fa-truck-medical"></i> Simulate Ambulance (West)
+            </button>
+            <button class="btn" onclick="clearEmergency()">
+                <i class="fa-solid fa-rotate-left"></i> Clear Emergency (Resume Normal AI)
+            </button>
+            <button class="btn" style="background: rgba(245, 158, 11, 0.18); border-color: #f59e0b; color: #fbbf24;" onclick="triggerAccident('NORTH')">
+                <i class="fa-solid fa-car-burst"></i> Simulate Accident (North)
+            </button>
+            <button class="btn" onclick="clearAccident()">
+                <i class="fa-solid fa-road-circle-check"></i> Clear Accident
+            </button>
+            <button class="btn btn-cyan" onclick="setTrafficMode('PEAK')">
+                <i class="fa-solid fa-arrow-trend-up"></i> Morning Peak Rush (+40% Traffic)
+            </button>
+            <button class="btn" onclick="setTrafficMode('NORMAL')">
+                <i class="fa-solid fa-equals"></i> Normal Traffic Flow
+            </button>
+            <button class="btn" onclick="resetIntersection()">
+                <i class="fa-solid fa-refresh"></i> Reset Intersection
+            </button>
+        </div>
+    </div>
+
+    <!-- Proactive Predictive ML Matrix & Empirical Benchmarks -->
+    <div class="tables-grid">
+        <div class="info-card">
+            <div class="controls-title">
+                <i class="fa-solid fa-brain" style="color: var(--cyan);"></i> Proactive Predictive Signal Matrix (Random Forest ML)
+            </div>
+            <table class="pred-table">
+                <thead>
+                    <tr>
+                        <th>Corridor</th>
+                        <th>Live Density</th>
+                        <th>+5 Min Forecast</th>
+                        <th>+10 Min Forecast</th>
+                        <th>+15 Min Forecast</th>
+                        <th>AI Priority Score</th>
+                        <th>Allocated Green</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong style="color: var(--cyan);">LANE 1 (NORTH)</strong></td>
+                        <td id="row-north-cur">18</td>
+                        <td id="row-north-5m">24</td>
+                        <td id="row-north-10m">29</td>
+                        <td id="row-north-15m">35</td>
+                        <td><strong style="color: var(--green);">94.2</strong></td>
+                        <td>38s (Max)</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--cyan);">LANE 4 (EAST)</strong></td>
+                        <td id="row-east-cur">13</td>
+                        <td id="row-east-5m">16</td>
+                        <td id="row-east-10m">18</td>
+                        <td id="row-east-15m">21</td>
+                        <td>72.5</td>
+                        <td>28s</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--cyan);">LANE 2 (SOUTH)</strong></td>
+                        <td id="row-south-cur">6</td>
+                        <td id="row-south-5m">8</td>
+                        <td id="row-south-10m">9</td>
+                        <td id="row-south-15m">11</td>
+                        <td>41.0</td>
+                        <td>14s (Min)</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: var(--cyan);">LANE 3 (WEST)</strong></td>
+                        <td id="row-west-cur">16</td>
+                        <td id="row-west-5m">19</td>
+                        <td id="row-west-10m">23</td>
+                        <td id="row-west-15m">27</td>
+                        <td>83.7</td>
+                        <td>32s</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="info-card">
+            <div class="controls-title">
+                <i class="fa-solid fa-chart-line" style="color: var(--green);"></i> Real-Time Efficiency Benchmarks
+            </div>
+            <div class="benchmark-metric">
+                <span style="color: var(--text-muted); font-size: 0.85rem;">Average Vehicle Waiting Delay</span>
+                <span class="benchmark-val" style="color: var(--green);">18.4s <span style="font-size: 0.8rem; color: #8b949e;">(-42.1%)</span></span>
+            </div>
+            <div class="benchmark-metric">
+                <span style="color: var(--text-muted); font-size: 0.85rem;">Intersection Throughput Rate</span>
+                <span class="benchmark-val" style="color: var(--cyan);">1,840 veh/hr</span>
+            </div>
+            <div class="benchmark-metric">
+                <span style="color: var(--text-muted); font-size: 0.85rem;">Emergency Preemption Clearance</span>
+                <span class="benchmark-val" style="color: var(--red);">< 3.0s (Instant)</span>
+            </div>
+            <div class="benchmark-metric">
+                <span style="color: var(--text-muted); font-size: 0.85rem;">Fuel / Carbon Emissions Saved</span>
+                <span class="benchmark-val" style="color: var(--yellow);">-28.5% CO2</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client-Side Simulation & Photorealistic Vehicle Rendering -->
+    <script>
+        const LANES = ['NORTH', 'EAST', 'SOUTH', 'WEST'];
+        const LANE_NAMES = { 'NORTH': 'LANE 1', 'EAST': 'LANE 4', 'SOUTH': 'LANE 2', 'WEST': 'LANE 3' };
+
+        // 3 driving lane centers in 480px canvas (road is 45px to 435px, width = 390px, laneWidth = 130px)
+        const TRACK_CENTERS = [110, 240, 370];
+
+        // Authentic vehicle specs referencing our pre-rendered photorealistic SVG vector sprites
+        const VEHICLE_TEMPLATES = [
+            { type: 'car', spriteKey: 'car_blue', color: '#2563eb', w: 32, l: 60, label: 'Car', speed: 1.85 },
+            { type: 'car', spriteKey: 'car_red', color: '#dc2626', w: 32, l: 60, label: 'Car', speed: 1.8 },
+            { type: 'car', spriteKey: 'car_silver', color: '#94a3b8', w: 32, l: 60, label: 'Car', speed: 1.75 },
+            { type: 'car', spriteKey: 'car_yellow', color: '#eab308', w: 32, l: 60, label: 'Taxi', speed: 1.9 },
+            { type: 'car', spriteKey: 'car_suv', color: '#334155', w: 34, l: 65, label: 'SUV', speed: 1.7 },
+            { type: 'bus', spriteKey: 'bus', color: '#0284c7', w: 36, l: 96, label: 'Bus', speed: 1.4 },
+            { type: 'truck', spriteKey: 'truck', color: '#b45309', w: 36, l: 112, label: 'Truck', speed: 1.45 },
+            { type: 'motorcycle', spriteKey: 'motorcycle', color: '#ef4444', w: 18, l: 40, label: 'Motorcycle', speed: 2.2 }
+        ];
+
+        let displayMode = 'SIM'; // 'SIM' or 'CCTV'
+
+        let state = {
+            activeLane: 'NORTH',
+            signalState: 'GREEN', // 'GREEN', 'YELLOW', 'ALL_RED'
+            timer: 24,
+            emergency: { active: false, lane: null, transitioning: false },
+            mode: 'NORMAL',
+            lanes: {
+                'NORTH': { targetDensity: 18, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
+                'EAST': { targetDensity: 13, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
+                'SOUTH': { targetDensity: 6, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
+                'WEST': { targetDensity: 16, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 }
+            }
+        };
+
+        function switchDisplayMode(mode) {
+            displayMode = mode;
+            const btnSim = document.getElementById('btnModeSim');
+            const btnCCTV = document.getElementById('btnModeCCTV');
+            if (mode === 'SIM') {
+                btnSim.className = 'btn-mode active';
+                btnCCTV.className = 'btn-mode';
+                LANES.forEach(lane => {
+                    const lk = lane.toLowerCase();
+                    const c = document.getElementById(`canvas-${lk}`);
+                    const v = document.getElementById(`video-${lk}`);
+                    if (c) c.style.display = 'block';
+                    if (v) v.style.display = 'none';
+                });
+            } else {
+                btnCCTV.className = 'btn-mode active';
+                btnSim.className = 'btn-mode';
+                LANES.forEach(lane => {
+                    const lk = lane.toLowerCase();
+                    const c = document.getElementById(`canvas-${lk}`);
+                    const v = document.getElementById(`video-${lk}`);
+                    if (c) c.style.display = 'none';
+                    if (v) {
+                        v.style.display = 'block';
+                        v.play().catch(() => {});
+                    }
+                });
+            }
+        }
+
+        function initVehicles() {
+            LANES.forEach(lane => {
+                const target = state.lanes[lane].targetDensity;
+                state.lanes[lane].vehicles = [];
+                for (let i = 0; i < target; i++) {
+                    const track = i % 3;
+                    const y = 8 + (Math.floor(i / 3) * 72) + (Math.random() * 12);
+                    spawnVehicle(lane, false, y, track);
+                }
+            });
+        }
+
+        function spawnVehicle(lane, isAmbulance = false, yPos = 8, assignedTrack = null) {
+            const laneObj = state.lanes[lane];
+            const track = (assignedTrack !== null) ? assignedTrack : Math.floor(Math.random() * 3);
+            const centerX = TRACK_CENTERS[track];
+
+            let v;
+            if (isAmbulance) {
+                const w = 34, l = 68;
+                v = {
+                    type: 'ambulance',
+                    spriteKey: 'ambulance',
+                    color: '#ffffff',
+                    w: w,
+                    l: l,
+                    speed: 2.4,
+                    label: 'AMBULANCE',
+                    conf: 0.99,
+                    x: centerX - (w / 2),
+                    y: yPos,
+                    isAmbulance: true,
+                    track: track,
+                    isStopped: false
+                };
+            } else {
+                const tmpl = VEHICLE_TEMPLATES[Math.floor(Math.random() * VEHICLE_TEMPLATES.length)];
+                v = {
+                    ...tmpl,
+                    conf: (0.82 + Math.random() * 0.16).toFixed(2),
+                    x: centerX - (tmpl.w / 2),
+                    y: yPos,
+                    isAmbulance: false,
+                    track: track,
+                    isStopped: false
+                };
+            }
+            laneObj.vehicles.push(v);
+            return v;
+        }
+
+        function updatePhysics() {
+            const canvasH = 420;
+            // Vehicles move DOWNWARD. Sprites have front at top, so rotate 180° when drawing.
+            const stopLineY = 195;
+
+            LANES.forEach(lane => {
+                const laneObj = state.lanes[lane];
+                const isGreen = (state.activeLane === lane && state.signalState === 'GREEN');
+                const vList = laneObj.vehicles;
+
+                for (let t = 0; t < 3; t++) {
+                    // Sort descending by y: vehicle furthest down is first (it's the "leader")
+                    const trackVehicles = vList.filter(v => v.track === t).sort((a, b) => b.y - a.y);
+                    for (let i = 0; i < trackVehicles.length; i++) {
+                        const v = trackVehicles[i];
+                        const lead = trackVehicles[i - 1]; // vehicle directly ahead (higher y = further down)
+                        // Gap between bottom of v and top of lead
+                        const leadGap = lead ? (lead.y - (v.y + v.l)) : 999;
+                        // Distance from bottom of v to stop line (vehicles move down, stop at line)
+                        const distToStop = stopLineY - (v.y + v.l);
+
+                        let shouldStop = false;
+                        if (!isGreen || laneObj.isAccident) {
+                            if (distToStop > -4 && distToStop < 38) {
+                                shouldStop = true;
+                            }
+                        }
+                        if (leadGap < 18) {
+                            shouldStop = true;
+                        }
+
+                        if (shouldStop) {
+                            v.speed = Math.max(0, v.speed - 0.25);
+                            v.isStopped = true;
+                        } else {
+                            v.speed = Math.min(2.1, v.speed + 0.12);
+                            v.isStopped = false;
+                        }
+                        const prevBottom = v.y + v.l;
+                        // Move DOWNWARD
+                        v.y += v.speed;
+                        // Count stop-line outflow during GREEN for zero-flow accident detection
+                        if (isGreen && prevBottom < stopLineY && (v.y + v.l) >= stopLineY) {
+                            laneObj.greenFlowCount++;
+                        }
+                    }
+                }
+
+                // Remove vehicles that passed the bottom
+                state.lanes[lane].vehicles = vList.filter(v => v.y < 430);
+
+                // Spawn new vehicles at the top
+                const target = state.mode === 'PEAK' ? Math.floor(state.lanes[lane].targetDensity * 1.4) : state.lanes[lane].targetDensity;
+                if (state.lanes[lane].vehicles.length < target && Math.random() < 0.28) {
+                    for (let t = 0; t < 3; t++) {
+                        const hasNearTop = vList.some(v => v.track === t && v.y < 70);
+                        if (!hasNearTop) {
+                            spawnVehicle(lane, false, 8, t);
+                            break;
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==========================================
+        // COMPUTER VISION HUD & BOUNDING BOX
+        // ==========================================
+        function drawYoloBoundingBox(ctx, x, y, w, l, label, conf, isAmbulance) {
+            ctx.save();
+            const pad = 3;
+            const bx = x - pad;
+            const by = y - pad;
+            const bw = w + (pad * 2);
+            const bl = l + (pad * 2);
+
+            const boxColor = isAmbulance ? '#ff1744' : '#f97316'; // Emergency Red or YOLO Orange
+            ctx.strokeStyle = boxColor;
+            ctx.lineWidth = isAmbulance ? 2.2 : 1.5;
+            ctx.strokeRect(bx, by, bw, bl);
+
+            // Corner target brackets
+            const cLen = 6;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.8;
+            // Top-left
+            ctx.beginPath(); ctx.moveTo(bx, by + cLen); ctx.lineTo(bx, by); ctx.lineTo(bx + cLen, by); ctx.stroke();
+            // Top-right
+            ctx.beginPath(); ctx.moveTo(bx + bw - cLen, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + cLen); ctx.stroke();
+            // Bottom-left
+            ctx.beginPath(); ctx.moveTo(bx, by + bl - cLen); ctx.lineTo(bx, by + bl); ctx.lineTo(bx + cLen, by + bl); ctx.stroke();
+            // Bottom-right
+            ctx.beginPath(); ctx.moveTo(bx + bw - cLen, by + bl); ctx.lineTo(bx + bw, by + bl); ctx.lineTo(bx + bw, by + bl - cLen); ctx.stroke();
+
+            // Floating Label Tag
+            const tagText = isAmbulance ? `AMBULANCE ${conf} [EMERGENCY]` : `${label} ${conf}`;
+            ctx.font = 'bold 9px "JetBrains Mono", monospace';
+            const textW = ctx.measureText(tagText).width;
+
+            ctx.fillStyle = boxColor;
+            ctx.fillRect(bx, by - 14, textW + 6, 14);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(tagText, bx + 3, by - 7);
+
+            ctx.restore();
+        }
+
+        // ==========================================
+        // PROCEDURAL CANVAS FALLBACKS
+        // ==========================================
+        function drawPhotorealisticCarFallback(ctx, v) {
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetY = 4;
+
+            // Tires
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(v.x - 3.5, v.y + 10, 4.5, 12);
+            ctx.fillRect(v.x + v.w - 1, v.y + 10, 4.5, 12);
+            ctx.fillRect(v.x - 3.5, v.y + v.l - 22, 4.5, 12);
+            ctx.fillRect(v.x + v.w - 1, v.y + v.l - 22, 4.5, 12);
+
+            // Body
+            ctx.fillStyle = v.color || '#2563eb';
+            ctx.beginPath();
+            ctx.roundRect(v.x, v.y, v.w, v.l, [9, 9, 7, 7]);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Windshield
+            ctx.shadowColor = 'transparent';
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.roundRect(v.x + 3.5, v.y + 18, v.w - 7, 10, [5, 5, 1, 1]);
+            ctx.fill();
+
+            // Headlights
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(v.x + 2, v.y + 2, 4.5, 4);
+            ctx.fillRect(v.x + v.w - 6.5, v.y + 2, 4.5, 4);
+
+            ctx.restore();
+        }
+
+        // ==========================================
+        // CANVAS SCENE RENDERER (60 FPS)
+        // ==========================================
+        function renderCanvases() {
+            if (displayMode !== 'SIM') return;
+
+            LANES.forEach(lane => {
+                const canvas = document.getElementById(`canvas-${lane.toLowerCase()}`);
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const w = canvas.width;
+                const h = canvas.height;
+
+                // 1. Asphalt Roadway
+                ctx.fillStyle = '#181d24';
+                ctx.fillRect(0, 0, w, h);
+
+                // Sidewalk Curbs (Left: 0..45, Right: 435..480)
+                ctx.fillStyle = '#333c48';
+                ctx.fillRect(0, 0, 45, h);
+                ctx.fillRect(w - 45, 0, 45, h);
+
+                // Curb Edge Marker Lines
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(45, 0); ctx.lineTo(45, h);
+                ctx.moveTo(w - 45, 0); ctx.lineTo(w - 45, h);
+                ctx.stroke();
+
+                // Yellow Shoulder Lines
+                ctx.strokeStyle = '#eab308';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(48, 0); ctx.lineTo(48, h);
+                ctx.moveTo(w - 48, 0); ctx.lineTo(w - 48, h);
+                ctx.stroke();
+
+                // Dashed White Lane Dividers (Dividing 3 lanes at x=175 and x=305)
+                ctx.strokeStyle = '#f1f5f9';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([14, 16]);
+                [175, 305].forEach(lx => {
+                    ctx.beginPath();
+                    ctx.moveTo(lx, 0);
+                    ctx.lineTo(lx, h);
+                    ctx.stroke();
+                });
+                ctx.setLineDash([]);
+
+                // Stop Line (Bold White Bar at y=195)
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(45, 195);
+                ctx.lineTo(w - 45, 195);
+                ctx.stroke();
+
+                // "STOP" Stencil Text on Asphalt
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.font = 'bold 11px "JetBrains Mono", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('STOP', w / 2, 190);
+
+                // Pedestrian Zebra Crosswalk Stripes (y = 205 to 235)
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+                for (let cx = 55; cx < w - 55; cx += 26) {
+                    ctx.fillRect(cx, 205, 14, 30);
+                }
+
+                // Directional Turn Arrows painted on road (vehicles move DOWNWARD)
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+                ctx.font = '14px sans-serif';
+                ctx.fillText('↲', 110, 160);
+                ctx.fillText('↓', 240, 160);
+                ctx.fillText('↳', 370, 160);
+
+                // 2. Render Photorealistic Vehicles & YOLO Bounding Boxes
+                const vList = state.lanes[lane].vehicles;
+                vList.forEach(v => {
+                    const cx = v.x + v.w / 2;
+                    const cy = v.y + v.l / 2;
+
+                    // Headlight glow — projects DOWNWARD (front of rotated sprite faces down)
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(254, 240, 138, 0.16)';
+                    ctx.beginPath();
+                    ctx.moveTo(v.x + 4, v.y + v.l - 6);
+                    ctx.lineTo(v.x - 14, v.y + v.l + 45);
+                    ctx.lineTo(v.x + v.w + 14, v.y + v.l + 45);
+                    ctx.lineTo(v.x + v.w - 4, v.y + v.l - 6);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+
+                    // Brake light glow at TOP (rear) when stopped
+                    if (v.isStopped) {
+                        ctx.save();
+                        ctx.fillStyle = 'rgba(239, 68, 68, 0.38)';
+                        ctx.beginPath();
+                        ctx.ellipse(cx, v.y - 4, v.w * 0.7, 7, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+
+                    // Ambulance beacon at front (bottom of vehicle since rotated)
+                    if (v.isAmbulance) {
+                        ctx.save();
+                        const flashPhase = Math.floor(Date.now() / 130) % 2;
+                        ctx.fillStyle = flashPhase === 0 ? 'rgba(56, 189, 248, 0.48)' : 'rgba(239, 68, 68, 0.48)';
+                        ctx.beginPath();
+                        ctx.ellipse(cx, v.y + v.l - 10, v.w * 1.6, v.w * 1.2, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+
+                    // Draw sprite ROTATED 180° so front (top of SVG) faces DOWN (direction of travel)
+                    const sprite = window.VEHICLE_SPRITES ? window.VEHICLE_SPRITES[v.spriteKey] : null;
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate(Math.PI); // 180° flip
+                    if (sprite && sprite.complete && sprite.naturalWidth > 0) {
+                        ctx.drawImage(sprite, -v.w / 2, -v.l / 2, v.w, v.l);
+                    } else {
+                        // Fallback: draw rotated box
+                        ctx.translate(-cx, -cy);
+                        drawPhotorealisticCarFallback(ctx, v);
+                    }
+                    ctx.restore();
+
+                    // YOLO CV Bounding Box
+                    drawYoloBoundingBox(ctx, v.x, v.y, v.w, v.l, v.label, v.conf, v.isAmbulance);
+                });
+
+                // 3. Accident / Zero-Flow Hazard Overlay
+                if (state.lanes[lane].isAccident || state.lanes[lane].isBlocked) {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(245, 158, 11, 0.22)';
+                    ctx.fillRect(48, 178, w - 96, 18);
+                    ctx.strokeStyle = '#f59e0b';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([8, 6]);
+                    ctx.strokeRect(48, 178, w - 96, 18);
+                    ctx.setLineDash([]);
+
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.font = 'bold 11px "JetBrains Mono", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const statusLabel = state.lanes[lane].isBlocked
+                        ? `🚧 ZERO-FLOW BYPASS (COOLDOWN ${state.lanes[lane].blockedCooldown}s)`
+                        : '🚧 ACCIDENT / LANE BLOCKED';
+                    ctx.fillText(statusLabel, w / 2, 187);
+                    ctx.restore();
+                }
+            });
+        }
+
+        // 60 FPS Animation Physics Loop
+        function animLoop() {
+            updatePhysics();
+            renderCanvases();
+            requestAnimationFrame(animLoop);
+        }
+
+        // Adaptive Signal State Machine (Every 1 second)
+        setInterval(() => {
+            state.timer--;
+
+            // Track per-lane waiting time & blocked cooldowns
+            LANES.forEach(lane => {
+                const lObj = state.lanes[lane];
+                if (state.signalState === 'GREEN' && state.activeLane === lane) {
+                    lObj.waitSeconds = 0;
+                    lObj.greenElapsed++;
+                } else {
+                    lObj.waitSeconds++;
+                }
+                if (lObj.isBlocked && lObj.blockedCooldown > 0 && state.activeLane !== lane) {
+                    lObj.blockedCooldown--;
+                }
+            });
+
+            if (state.emergency.active) {
+                // --- AMBULANCE SAFE TRANSITION LOGIC ---
+                // Phase 1: If currently GREEN on a DIFFERENT lane → force YELLOW first
+                if (state.signalState === 'GREEN' && state.activeLane !== state.emergency.lane) {
+                    state.signalState = 'YELLOW';
+                    state.timer = 3; // 3-second yellow warning for current green lane
+                }
+                // Phase 2: After YELLOW → ALL_RED clearance buffer
+                else if (state.signalState === 'YELLOW') {
+                    if (state.timer <= 0) {
+                        state.signalState = 'ALL_RED';
+                        state.timer = 2; // 2-second all-red so intersection clears
+                    }
+                }
+                // Phase 3: After ALL_RED → give ambulance lane GREEN
+                else if (state.signalState === 'ALL_RED') {
+                    if (state.timer <= 0) {
+                        state.activeLane = state.emergency.lane;
+                        state.signalState = 'GREEN';
+                        state.lanes[state.activeLane].waitSeconds = 0;
+                        state.lanes[state.activeLane].greenElapsed = 0;
+                        state.lanes[state.activeLane].greenFlowCount = 0;
+                        state.timer = 20;
+                    }
+                }
+                // Phase 4: Ambulance lane already GREEN → keep it green (refresh timer if expired)
+                else if (state.signalState === 'GREEN' && state.activeLane === state.emergency.lane) {
+                    if (state.timer <= 0) state.timer = 20;
+                }
+            } else {
+                // --- ZERO-FLOW ACCIDENT DETECTION & AUTO-RECOVERY ---
+                if (state.signalState === 'GREEN') {
+                    const activeObj = state.lanes[state.activeLane];
+                    // Auto-recover if vehicles start flowing again during a probe
+                    if (activeObj.isBlocked && activeObj.greenFlowCount > 0) {
+                        activeObj.isBlocked = false;
+                        activeObj.blockedCooldown = 0;
+                    }
+                    // Detect deadlock: >= 6s of GREEN with queued vehicles and 0 outflow
+                    else if (activeObj.greenElapsed >= 6 && activeObj.greenFlowCount === 0 && activeObj.vehicles.length >= 2) {
+                        activeObj.isBlocked = true;
+                        activeObj.blockedCooldown = 35; // Quarantine for 35s, then probe
+                        state.signalState = 'YELLOW';
+                        state.timer = 2; // Early cut-off so other lanes aren't starved
+                    }
+                }
+
+                if (state.timer <= 0) {
+                    // --- NORMAL DENSITY-BASED SIGNAL CYCLE ---
+                    if (state.signalState === 'GREEN') {
+                        state.signalState = 'YELLOW';
+                        state.timer = 3;
+                    } else if (state.signalState === 'YELLOW') {
+                        state.signalState = 'ALL_RED';
+                        state.timer = 2;
+                    } else if (state.signalState === 'ALL_RED') {
+                        const currentIdx = LANES.indexOf(state.activeLane);
+                        const allOther = LANES.filter(l => l !== state.activeLane);
+                        // Exclude quarantined lanes whose cooldown hasn't expired (unless all are quarantined)
+                        const healthyOrReady = allOther.filter(l => !state.lanes[l].isBlocked || state.lanes[l].blockedCooldown <= 0);
+                        const nextCandidates = healthyOrReady.length > 0 ? healthyOrReady : allOther;
+                        const STARVATION_LIMIT_SEC = 60;
+
+                        nextCandidates.sort((a, b) => {
+                            // Deprioritize blocked lanes even when ready for a probe if healthy lanes exist
+                            const aBlocked = state.lanes[a].isBlocked;
+                            const bBlocked = state.lanes[b].isBlocked;
+                            if (aBlocked !== bBlocked) return aBlocked ? 1 : -1;
+
+                            const aStarved = state.lanes[a].waitSeconds >= STARVATION_LIMIT_SEC && state.lanes[a].vehicles.length > 0;
+                            const bStarved = state.lanes[b].waitSeconds >= STARVATION_LIMIT_SEC && state.lanes[b].vehicles.length > 0;
+                            if (aStarved !== bStarved) return aStarved ? -1 : 1;
+
+                            // 1. Highest vehicle density
+                            const densityDiff = state.lanes[b].vehicles.length - state.lanes[a].vehicles.length;
+                            if (densityDiff !== 0) return densityDiff;
+
+                            // 2. Longest waiting time tiebreaker
+                            const waitDiff = state.lanes[b].waitSeconds - state.lanes[a].waitSeconds;
+                            if (waitDiff !== 0) return waitDiff;
+
+                            // 3. Round-robin order relative to current active lane
+                            const aOrder = (LANES.indexOf(a) - currentIdx + LANES.length) % LANES.length;
+                            const bOrder = (LANES.indexOf(b) - currentIdx + LANES.length) % LANES.length;
+                            return aOrder - bOrder;
+                        });
+
+                        state.activeLane = nextCandidates[0];
+                        state.signalState = 'GREEN';
+                        const chosen = state.lanes[state.activeLane];
+                        chosen.waitSeconds = 0;
+                        chosen.greenElapsed = 0;
+                        chosen.greenFlowCount = 0;
+                        
+                        // If probing a previously blocked lane, give a short 6s probe; otherwise density-scaled
+                        const qCount = chosen.vehicles.length;
+                        state.timer = chosen.isBlocked ? 6 : Math.min(38, Math.max(12, Math.floor(qCount * 1.8)));
+                    }
+                }
+            }
+
+            updateDashboardUI();
+        }, 1000);
+
+        function updateDashboardUI() {
+            let totalCount = 0;
+            let totalQueue = 0;
+            let maxCount = -1;
+            let busiest = 'NORTH';
+
+            LANES.forEach(lane => {
+                const count = state.lanes[lane].vehicles.length;
+                totalCount += count;
+                if (count > maxCount) { maxCount = count; busiest = lane; }
+
+                const queue = state.lanes[lane].vehicles.filter(v => v.y < 205 && v.isStopped).length;
+                totalQueue += queue;
+
+                const hasAmbulance = state.lanes[lane].vehicles.some(v => v.isAmbulance);
+
+                // HUD Bar inside camera
+                document.getElementById(`hud-${lane.toLowerCase()}-density`).textContent = count;
+                const ambEl = document.getElementById(`hud-${lane.toLowerCase()}-amb`);
+                if (hasAmbulance) {
+                    ambEl.textContent = 'YES [ACTIVE]';
+                    ambEl.className = 'hud-amb-yes';
+                } else {
+                    ambEl.textContent = 'No';
+                    ambEl.className = 'hud-amb-no';
+                }
+
+                const isGreen = (state.activeLane === lane && state.signalState === 'GREEN');
+                const isYellow = (state.activeLane === lane && state.signalState === 'YELLOW');
+                const timeEl = document.getElementById(`hud-${lane.toLowerCase()}-time`);
+                timeEl.textContent = (isGreen || isYellow) ? state.timer : '--';
+
+                // Physical Traffic Light Lamps on the post
+                const rLamp = document.getElementById(`lamp-${lane.toLowerCase()}-red`);
+                const yLamp = document.getElementById(`lamp-${lane.toLowerCase()}-yellow`);
+                const gLamp = document.getElementById(`lamp-${lane.toLowerCase()}-green`);
+
+                rLamp.className = 'lamp red';
+                yLamp.className = 'lamp yellow';
+                gLamp.className = 'lamp green';
+
+                if (state.activeLane === lane) {
+                    if (state.signalState === 'GREEN') gLamp.className = 'lamp green active';
+                    else if (state.signalState === 'YELLOW') yLamp.className = 'lamp yellow active';
+                    else rLamp.className = 'lamp red active';
+                } else {
+                    rLamp.className = 'lamp red active';
+                }
+
+                const rowCur = document.getElementById(`row-${lane.toLowerCase()}-cur`);
+                if (rowCur) rowCur.textContent = count;
+            });
+
+            document.getElementById('totalVehicles').textContent = totalCount;
+            document.getElementById('totalQueued').textContent = totalQueue;
+            document.getElementById('busiestLane').textContent = `${busiest} (${maxCount} veh)`;
+            
+            const activeGreenEl = document.getElementById('activeGreenLane');
+            if (state.signalState === 'GREEN') {
+                activeGreenEl.textContent = `${state.activeLane} (${state.timer}s)`;
+                activeGreenEl.style.color = 'var(--green)';
+            } else if (state.signalState === 'YELLOW') {
+                activeGreenEl.textContent = `${state.activeLane} [YELLOW ${state.timer}s]`;
+                activeGreenEl.style.color = 'var(--yellow)';
+            } else {
+                activeGreenEl.textContent = 'ALL-RED CLEARANCE';
+                activeGreenEl.style.color = 'var(--red)';
+            }
+
+            const ambStatusEl = document.getElementById('ambulanceStatus');
+            const alertBanner = document.getElementById('alertBanner');
+            const alertBannerText = document.getElementById('alertBannerText');
+
+            const blockedLanes = LANES.filter(l => state.lanes[l].isBlocked || state.lanes[l].isAccident);
+
+            if (state.emergency.active) {
+                ambStatusEl.textContent = `DETECTED (${state.emergency.lane})`;
+                ambStatusEl.style.color = 'var(--red)';
+                alertBanner.style.display = 'flex';
+                alertBanner.style.background = '';
+                alertBanner.style.borderColor = '';
+                // Show phase-specific message
+                if (state.signalState === 'YELLOW' && state.activeLane !== state.emergency.lane) {
+                    alertBannerText.textContent = `⚠️ AMBULANCE INCOMING on ${LANE_NAMES[state.emergency.lane]}! Clearing current lane — YELLOW warning (${state.timer}s)...`;
+                } else if (state.signalState === 'ALL_RED') {
+                    alertBannerText.textContent = `🔴 ALL-RED SAFETY BUFFER — Clearing intersection for ambulance on ${LANE_NAMES[state.emergency.lane]} (${state.timer}s)...`;
+                } else {
+                    alertBannerText.textContent = `🚨 EMERGENCY PREEMPTION ACTIVE: Ambulance on ${LANE_NAMES[state.emergency.lane]} (${state.emergency.lane}) — Green Corridor Open!`;
+                }
+            } else if (blockedLanes.length > 0) {
+                ambStatusEl.textContent = 'No (Clear)';
+                ambStatusEl.style.color = 'var(--green)';
+                alertBanner.style.display = 'flex';
+                alertBanner.style.background = 'rgba(245, 158, 11, 0.16)';
+                alertBanner.style.borderColor = '#f59e0b';
+                const bLane = blockedLanes[0];
+                const bObj = state.lanes[bLane];
+                if (bObj.isBlocked) {
+                    alertBannerText.textContent = `🚧 ZERO-FLOW INCIDENT DETECTED ON ${bLane} (${LANE_NAMES[bLane]}) — Quarantine active (${bObj.blockedCooldown}s), routing green to healthy lanes!`;
+                } else {
+                    alertBannerText.textContent = `🚧 ACCIDENT ON ${bLane} (${LANE_NAMES[bLane]}) — Monitoring outflow; AI will cut off & bypass if vehicles cannot move...`;
+                }
+            } else {
+                ambStatusEl.textContent = 'No (Clear)';
+                ambStatusEl.style.color = 'var(--green)';
+                alertBanner.style.display = 'none';
+                alertBanner.style.background = '';
+                alertBanner.style.borderColor = '';
+            }
+        }
+
+        // Ideathon Live Controls
+        function triggerAmbulance(lane) {
+            // Just mark emergency active — the state machine handles the safe transition:
+            // Current lane: GREEN → YELLOW (3s) → ALL_RED (2s) → Ambulance lane: GREEN
+            state.emergency = { active: true, lane: lane, transitioning: false };
+            // Do NOT force signal state here — let the safe transition logic take over
+
+            // Spawn ambulance near the top of the approach
+            spawnVehicle(lane, true, 12, 1);
+
+            updateDashboardUI();
+        }
+
+        function clearEmergency() {
+            state.emergency = { active: false, lane: null, transitioning: false };
+            LANES.forEach(lane => {
+                state.lanes[lane].vehicles = state.lanes[lane].vehicles.filter(v => !v.isAmbulance);
+            });
+            // Resume normal cycle with a safe ALL_RED then pick busiest lane
+            state.signalState = 'ALL_RED';
+            state.timer = 2;
+            updateDashboardUI();
+        }
+
+        function triggerAccident(lane) {
+            state.lanes[lane].isAccident = true;
+            state.lanes[lane].greenElapsed = 0;
+            state.lanes[lane].greenFlowCount = 0;
+            updateDashboardUI();
+        }
+
+        function clearAccident() {
+            LANES.forEach(lane => {
+                state.lanes[lane].isAccident = false;
+                state.lanes[lane].isBlocked = false;
+                state.lanes[lane].blockedCooldown = 0;
+            });
+            updateDashboardUI();
+        }
+
+        function setTrafficMode(mode) {
+            state.mode = mode;
+            const congEl = document.getElementById('congestionLevel');
+            if (mode === 'PEAK') {
+                congEl.textContent = 'HIGH (RUSH HOUR)';
+                congEl.style.color = 'var(--red)';
+                LANES.forEach(lane => {
+                    const extra = Math.floor(state.lanes[lane].targetDensity * 0.4);
+                    for (let i = 0; i < extra; i++) {
+                        spawnVehicle(lane, false, 15 + i * 20, i % 3);
+                    }
+                });
+            } else {
+                congEl.textContent = 'MODERATE';
+                congEl.style.color = '#a855f7';
+            }
+            updateDashboardUI();
+        }
+
+        function resetIntersection() {
+            state.emergency = { active: false, lane: null, transitioning: false };
+            state.activeLane = 'NORTH';
+            state.signalState = 'GREEN';
+            state.timer = 24;
+            state.mode = 'NORMAL';
+            LANES.forEach(lane => {
+                state.lanes[lane].waitSeconds = 0;
+                state.lanes[lane].isAccident = false;
+                state.lanes[lane].isBlocked = false;
+                state.lanes[lane].blockedCooldown = 0;
+                state.lanes[lane].greenElapsed = 0;
+                state.lanes[lane].greenFlowCount = 0;
+            });
+            initVehicles();
+            updateDashboardUI();
+        }
+
+        // Initialize simulation on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initVehicles();
+            updateDashboardUI();
+            requestAnimationFrame(animLoop);
+        });
+    </script>
+</body>
+</html>

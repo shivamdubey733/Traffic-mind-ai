@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}TrafficMind AI - Four-Way Intersection Simulation Lab{% endblock %}
+
+{% block content %}
+<div class="panel-card" style="margin-bottom: 1.5rem;">
+    <div class="panel-header">
+        <div class="panel-title">
+            <i class="fa-solid fa-microchip" style="color: #06b6d4;"></i> Interactive Four-Way Intersection Simulation Laboratory
+        </div>
+        <span style="font-size: 0.85rem; color: #10b981;">
+            <i class="fa-solid fa-link"></i> Live Connected to Adaptive Predictive Signal Controller
+        </span>
+    </div>
+    <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.5;">
+        This laboratory simulates vehicle micro-dynamics at a 4-way intersection. You can inject congestion waves, simulate morning/evening rush hours, adjust traffic density, and trigger emergency ambulance preemption. Watch the AI signal controller dynamically recalculate green light durations in real time.
+    </p>
+
+    <!-- Simulation Control Deck -->
+    <div style="display: flex; gap: 10px; margin-top: 1.25rem; flex-wrap: wrap;">
+        <button class="btn-custom btn-cyan" onclick="setSimState('start')">
+            <i class="fa-solid fa-play"></i> Start Simulation
+        </button>
+        <button class="btn-custom" onclick="setSimState('pause')">
+            <i class="fa-solid fa-pause"></i> Pause
+        </button>
+        <button class="btn-custom" onclick="setSimState('reset')">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+        </button>
+        <button class="btn-custom" onclick="modifyTraffic(1.25)">
+            <i class="fa-solid fa-plus"></i> Increase Traffic (+25%)
+        </button>
+        <button class="btn-custom" onclick="modifyTraffic(0.8)">
+            <i class="fa-solid fa-minus"></i> Decrease Traffic (-20%)
+        </button>
+        <button class="btn-custom" onclick="setSimulationMode('PEAK_HOUR')">
+            <i class="fa-solid fa-bolt"></i> Simulate Peak Hour
+        </button>
+        <button class="btn-custom" onclick="setSimulationMode('NORMAL')">
+            <i class="fa-solid fa-leaf"></i> Normal Traffic
+        </button>
+    </div>
+</div>
+
+<!-- 4-Lane Live Feeds in Simulation Lab -->
+<div class="lanes-grid">
+    <div class="lane-card">
+        <div class="lane-header">
+            <span class="lane-title"><i class="fa-solid fa-video" style="color: #06b6d4;"></i> NORTH APPROACH</span>
+            <span id="signal-pill-north" class="signal-status-pill pill-red">RED --</span>
+        </div>
+        <div class="video-container">
+            <img src="{{ url_for('video_feed', lane='NORTH') }}" class="video-feed" alt="North Feed">
+        </div>
+        <div class="lane-telemetry">
+            <div class="telemetry-item">
+                <span class="telemetry-label">Density (Count)</span>
+                <span class="telemetry-val" id="density-idx-north" style="color: #06b6d4;">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Queue</span>
+                <span class="telemetry-val" id="queue-len-north">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Ambulance</span>
+                <span class="telemetry-val" id="amb-status-north" style="color: #10b981;">No</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Timer</span>
+                <span class="telemetry-val" id="signal-timer-north">--</span>
+            </div>
+        </div>
+        <div style="padding: 10px; text-align: center;">
+            <button class="btn-custom btn-danger" style="width: 100%; justify-content: center;" onclick="triggerEmergency('NORTH')">
+                <i class="fa-solid fa-truck-medical"></i> Trigger Ambulance (North)
+            </button>
+        </div>
+    </div>
+
+    <div class="lane-card">
+        <div class="lane-header">
+            <span class="lane-title"><i class="fa-solid fa-video" style="color: #10b981;"></i> EAST APPROACH</span>
+            <span id="signal-pill-east" class="signal-status-pill pill-red">RED --</span>
+        </div>
+        <div class="video-container">
+            <img src="{{ url_for('video_feed', lane='EAST') }}" class="video-feed" alt="East Feed">
+        </div>
+        <div class="lane-telemetry">
+            <div class="telemetry-item">
+                <span class="telemetry-label">Density (Count)</span>
+                <span class="telemetry-val" id="density-idx-east" style="color: #10b981;">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Queue</span>
+                <span class="telemetry-val" id="queue-len-east">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Ambulance</span>
+                <span class="telemetry-val" id="amb-status-east" style="color: #10b981;">No</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Timer</span>
+                <span class="telemetry-val" id="signal-timer-east">--</span>
+            </div>
+        </div>
+        <div style="padding: 10px; text-align: center;">
+            <button class="btn-custom btn-danger" style="width: 100%; justify-content: center;" onclick="triggerEmergency('EAST')">
+                <i class="fa-solid fa-truck-medical"></i> Trigger Ambulance (East)
+            </button>
+        </div>
+    </div>
+
+    <div class="lane-card">
+        <div class="lane-header">
+            <span class="lane-title"><i class="fa-solid fa-video" style="color: #f59e0b;"></i> SOUTH APPROACH</span>
+            <span id="signal-pill-south" class="signal-status-pill pill-red">RED --</span>
+        </div>
+        <div class="video-container">
+            <img src="{{ url_for('video_feed', lane='SOUTH') }}" class="video-feed" alt="South Feed">
+        </div>
+        <div class="lane-telemetry">
+            <div class="telemetry-item">
+                <span class="telemetry-label">Density (Count)</span>
+                <span class="telemetry-val" id="density-idx-south" style="color: #f59e0b;">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Queue</span>
+                <span class="telemetry-val" id="queue-len-south">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Ambulance</span>
+                <span class="telemetry-val" id="amb-status-south" style="color: #10b981;">No</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Timer</span>
+                <span class="telemetry-val" id="signal-timer-south">--</span>
+            </div>
+        </div>
+        <div style="padding: 10px; text-align: center;">
+            <button class="btn-custom btn-danger" style="width: 100%; justify-content: center;" onclick="triggerEmergency('SOUTH')">
+                <i class="fa-solid fa-truck-medical"></i> Trigger Ambulance (South)
+            </button>
+        </div>
+    </div>
+
+    <div class="lane-card">
+        <div class="lane-header">
+            <span class="lane-title"><i class="fa-solid fa-video" style="color: #8b5cf6;"></i> WEST APPROACH</span>
+            <span id="signal-pill-west" class="signal-status-pill pill-red">RED --</span>
+        </div>
+        <div class="video-container">
+            <img src="{{ url_for('video_feed', lane='WEST') }}" class="video-feed" alt="West Feed">
+        </div>
+        <div class="lane-telemetry">
+            <div class="telemetry-item">
+                <span class="telemetry-label">Density (Count)</span>
+                <span class="telemetry-val" id="density-idx-west" style="color: #8b5cf6;">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Queue</span>
+                <span class="telemetry-val" id="queue-len-west">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Ambulance</span>
+                <span class="telemetry-val" id="amb-status-west" style="color: #10b981;">No</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Timer</span>
+                <span class="telemetry-val" id="signal-timer-west">--</span>
+            </div>
+        </div>
+        <div style="padding: 10px; text-align: center;">
+            <button class="btn-custom btn-danger" style="width: 100%; justify-content: center;" onclick="triggerEmergency('WEST')">
+                <i class="fa-solid fa-truck-medical"></i> Trigger Ambulance (West)
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+function setSimState(action) {
+    fetch(`/api/simulation/${action}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(d => console.log('Sim state:', d));
+}
+
+function modifyTraffic(factor) {
+    fetch('/api/simulation/multiplier', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ factor: factor })
+    })
+    .then(res => res.json())
+    .then(d => alert(`Traffic multiplier updated: ${d.multiplier}x`));
+}
+</script>
+{% endblock %}

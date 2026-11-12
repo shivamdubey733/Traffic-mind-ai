@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 54 144" width="54" height="144">
+  <defs>
+    <filter id="bus-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="4" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+    <linearGradient id="bus-body-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="12%" stop-color="#38bdf8"/>
+      <stop offset="88%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <linearGradient id="bus-roof-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#cbd5e1"/>
+      <stop offset="15%" stop-color="#f8fafc"/>
+      <stop offset="85%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <linearGradient id="bus-windshield" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="70%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 6 Wheels: Steer Axle + Tandem Dual Axle -->
+  <g id="bus-wheels" fill="#0f172a">
+    <!-- Front Steer Wheels -->
+    <rect x="2" y="24" width="5" height="18" rx="2"/>
+    <rect x="3.5" y="27" width="2" height="12" rx="1" fill="#94a3b8"/>
+    <rect x="47" y="24" width="5" height="18" rx="2"/>
+    <rect x="48.5" y="27" width="2" height="12" rx="1" fill="#94a3b8"/>
+    <!-- Tandem Rear Dual Wheels -->
+    <rect x="1" y="104" width="6" height="18" rx="2"/>
+    <rect x="3" y="107" width="2" height="12" rx="1" fill="#94a3b8"/>
+    <rect x="47" y="104" width="6" height="18" rx="2"/>
+    <rect x="49" y="107" width="2" height="12" rx="1" fill="#94a3b8"/>
+  </g>
+
+  <!-- Large Commercial Side Mirrors -->
+  <g id="bus-mirrors" fill="#0284c7" stroke="#0f172a" stroke-width="0.8">
+    <path d="M 5 18 L -3 15 C -4 17 -4 20 -3 22 L 5 21 Z"/>
+    <path d="M 49 18 L 57 15 C 58 17 58 20 57 22 L 49 21 Z"/>
+  </g>
+
+  <!-- Main Bus Body -->
+  <g filter="url(#bus-shadow)">
+    <!-- Aerodynamic Chassis -->
+    <path d="M 14 3 
+             C 22 1.5, 32 1.5, 40 3 
+             C 47 4.5, 48 9, 48 18 
+             L 48 136 
+             C 48 141, 45 143, 38 143 
+             L 16 143 
+             C 9 143, 6 141, 6 136 
+             L 6 18 
+             C 6 9, 7 4.5, 14 3 Z" 
+          fill="url(#bus-body-grad)" 
+          stroke="#0369a1" 
+          stroke-width="1.3"/>
+
+    <!-- Front Heavy Bumper & Rubber Impact Guard -->
+    <path d="M 12 2 Q 27 0.5 42 2" stroke="#475569" stroke-width="2" fill="none"/>
+    <rect x="16" y="4" width="22" height="4" rx="1.5" fill="#0f172a"/>
+    <line x1="18" y1="6" x2="36" y2="6" stroke="#94a3b8" stroke-width="0.8"/>
+
+    <!-- Dual Commercial Projector Headlights -->
+    <rect x="8" y="5" width="6" height="4" rx="1" fill="#f8fafc" stroke="#38bdf8" stroke-width="0.7"/>
+    <circle cx="11" cy="7" r="1.5" fill="#38bdf8"/>
+    <rect x="40" y="5" width="6" height="4" rx="1" fill="#f8fafc" stroke="#38bdf8" stroke-width="0.7"/>
+    <circle cx="43" cy="7" r="1.5" fill="#38bdf8"/>
+
+    <!-- Massive Panoramic Curved Windshield -->
+    <path d="M 9 10 
+             C 17 8, 37 8, 45 10 
+             C 47 11, 47 24, 45 26 
+             C 37 27, 17 27, 9 26 
+             C 7 24, 7 11, 9 10 Z" 
+          fill="url(#bus-windshield)" 
+          stroke="#0f172a" 
+          stroke-width="1"/>
+
+    <!-- Heavy Bus Wipers -->
+    <line x1="16" y1="11" x2="25" y2="19" stroke="#0f172a" stroke-width="1.3"/>
+    <line x1="29" y1="11" x2="38" y2="19" stroke="#0f172a" stroke-width="1.3"/>
+
+    <!-- Digital Amber LED Destination Display Route Sign -->
+    <rect x="14" y="11" width="26" height="6" rx="1.5" fill="#0f172a" stroke="#ca8a04" stroke-width="0.7"/>
+    <text x="27" y="15.5" font-size="3.2" font-family="'JetBrains Mono', monospace" font-weight="900" fill="#facc15" text-anchor="middle" letter-spacing="0.4">42 METRO EXP</text>
+
+    <!-- Side Panoramic Tinted Windows -->
+    <g fill="#0f172a" stroke="#0369a1" stroke-width="0.6">
+      <!-- Left side windows -->
+      <rect x="7" y="29" width="3" height="12"/>
+      <rect x="7" y="43" width="3" height="12"/>
+      <rect x="7" y="57" width="3" height="12"/>
+      <rect x="7" y="71" width="3" height="12"/>
+      <rect x="7" y="85" width="3" height="12"/>
+      <rect x="7" y="99" width="3" height="12"/>
+      <rect x="7" y="113" width="3" height="12"/>
+      <!-- Right side windows -->
+      <rect x="44" y="29" width="3" height="12"/>
+      <rect x="44" y="43" width="3" height="12"/>
+      <rect x="44" y="57" width="3" height="12"/>
+      <rect x="44" y="71" width="3" height="12"/>
+      <rect x="44" y="85" width="3" height="12"/>
+      <rect x="44" y="99" width="3" height="12"/>
+      <rect x="44" y="113" width="3" height="12"/>
+    </g>
+
+    <!-- Main White Roof Surface -->
+    <rect x="11" y="28" width="32" height="99" rx="3" fill="url(#bus-roof-grad)" stroke="#94a3b8" stroke-width="0.8"/>
+
+    <!-- Front Rooftop A/C Compressor Unit 1 -->
+    <rect x="14" y="38" width="26" height="18" rx="3" fill="#64748b" stroke="#334155" stroke-width="0.8"/>
+    <!-- Ventilation Cooling Grilles -->
+    <circle cx="21" cy="47" r="4.5" fill="#1e293b" stroke="#94a3b8" stroke-width="0.6"/>
+    <circle cx="33" cy="47" r="4.5" fill="#1e293b" stroke="#94a3b8" stroke-width="0.6"/>
+
+    <!-- Center Roof Safety Escape Hatch -->
+    <rect x="18" y="68" width="18" height="14" rx="2" fill="#e2e8f0" stroke="#94a3b8" stroke-width="0.8"/>
+    <line x1="21" y1="75" x2="33" y2="75" stroke="#ef4444" stroke-width="1.2"/>
+
+    <!-- Rear Rooftop A/C Compressor Unit 2 -->
+    <rect x="14" y="93" width="26" height="18" rx="3" fill="#64748b" stroke="#334155" stroke-width="0.8"/>
+    <circle cx="21" cy="102" r="4.5" fill="#1e293b" stroke="#94a3b8" stroke-width="0.6"/>
+    <circle cx="33" cy="102" r="4.5" fill="#1e293b" stroke="#94a3b8" stroke-width="0.6"/>
+
+    <!-- Rear Engine Hatch Ventilation Louvers -->
+    <rect x="14" y="130" width="26" height="9" rx="1.5" fill="#1e293b"/>
+    <line x1="17" y1="132" x2="37" y2="132" stroke="#475569" stroke-width="0.7"/>
+    <line x1="17" y1="134.5" x2="37" y2="134.5" stroke="#475569" stroke-width="0.7"/>
+    <line x1="17" y1="137" x2="37" y2="137" stroke="#475569" stroke-width="0.7"/>
+
+    <!-- Vertical LED Brake Light Clusters -->
+    <rect x="8" y="134" width="3" height="7" rx="1" fill="#ef4444"/>
+    <rect x="43" y="134" width="3" height="7" rx="1" fill="#ef4444"/>
+  </g>
+</svg>

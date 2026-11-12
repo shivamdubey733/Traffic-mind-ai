@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}TrafficMind AI - Analytics & Comparative Benchmarks{% endblock %}
+
+{% block content %}
+<!-- Top Filter Bar -->
+<div class="panel-card" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <label for="analytics-lane-filter" style="font-size: 0.85rem; color: #94a3b8;"><i class="fa-solid fa-filter"></i> Corridor Filter:</label>
+        <select id="analytics-lane-filter" class="form-input" style="width: auto; padding: 6px 12px;">
+            <option value="ALL">All Approaches</option>
+            <option value="NORTH">North Approach</option>
+            <option value="EAST">East Approach</option>
+            <option value="SOUTH">South Approach</option>
+            <option value="WEST">West Approach</option>
+        </select>
+    </div>
+
+    <div>
+        <a href="{{ url_for('export_csv') }}" class="btn-custom btn-cyan">
+            <i class="fa-solid fa-file-arrow-down"></i> Export Historical Traffic CSV
+        </a>
+    </div>
+</div>
+
+<!-- Ideathon Innovation Comparison Cards -->
+<div class="metrics-grid" style="margin-bottom: 1.5rem;">
+    <div class="metric-card">
+        <div class="metric-title"><i class="fa-solid fa-stopwatch"></i> Vehicle Delay Reduction</div>
+        <div class="metric-value" id="comp-wait-reduction" style="color: #10b981;">-36.2%</div>
+        <div class="metric-sub">vs Conventional Fixed Timings</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-title"><i class="fa-solid fa-arrows-down-to-line"></i> Queue Spillback Reduction</div>
+        <div class="metric-value" id="comp-queue-reduction" style="color: #10b981;">-32.4%</div>
+        <div class="metric-sub">Eliminates gridlock cascades</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-title"><i class="fa-solid fa-bolt"></i> Throughput Efficiency Gain</div>
+        <div class="metric-value" id="comp-throughput-gain" style="color: #06b6d4;">+35.2%</div>
+        <div class="metric-sub">More vehicles cleared per cycle</div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+    <div class="panel-card">
+        <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-chart-line" style="color: #06b6d4;"></i> Diurnal Traffic Demand & Queue Profile</div>
+            <span style="font-size: 0.78rem; color: #94a3b8;">Morning & Evening Peaks</span>
+        </div>
+        <div style="position: relative; height: 320px;">
+            <canvas id="hourlyTrafficChart"></canvas>
+        </div>
+    </div>
+
+    <div class="panel-card">
+        <div class="panel-header">
+            <div class="panel-title"><i class="fa-solid fa-chart-pie" style="color: #8b5cf6;"></i> Traffic Volume by Approach</div>
+        </div>
+        <div style="position: relative; height: 320px;">
+            <canvas id="laneDistributionChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Benchmark Chart -->
+<div class="panel-card" style="margin-bottom: 1.5rem;">
+    <div class="panel-header">
+        <div class="panel-title"><i class="fa-solid fa-scale-balanced" style="color: #f59e0b;"></i> Empirical Benchmark: TrafficMind AI vs Conventional Fixed-Time Controller</div>
+        <span style="font-size: 0.78rem; color: #94a3b8;">Highway Capacity Manual Simulation Results</span>
+    </div>
+    <div style="position: relative; height: 300px;">
+        <canvas id="comparisonChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

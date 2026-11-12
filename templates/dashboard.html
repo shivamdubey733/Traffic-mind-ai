@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}TrafficMind AI - Smart City Command Center{% endblock %}
+
+{% block content %}
+<!-- Top Statistics Metrics -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-title"><i class="fa-solid fa-car-side"></i> Total Vehicles Detected</div>
+        <div class="metric-value" id="metric-total-vehicles">--</div>
+        <div class="metric-sub"><i class="fa-solid fa-eye"></i> Real-time YOLOv8 tracker</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-title"><i class="fa-solid fa-hourglass-half"></i> Waiting in Queue</div>
+        <div class="metric-value" id="metric-queued-vehicles" style="color: #f59e0b;">--</div>
+        <div class="metric-sub"><i class="fa-solid fa-ruler-horizontal"></i> Near stop lines</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-title"><i class="fa-solid fa-fire"></i> Busiest Approach</div>
+        <div class="metric-value" id="metric-busiest-lane" style="color: #06b6d4;">--</div>
+        <div class="metric-sub"><i class="fa-solid fa-chart-line"></i> Highest traffic density</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-title"><i class="fa-solid fa-road"></i> Average Queue (m)</div>
+        <div class="metric-value" id="metric-avg-queue">--</div>
+        <div class="metric-sub"><i class="fa-solid fa-arrows-left-right"></i> Across all 4 corridors</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-title"><i class="fa-solid fa-traffic-light"></i> Active Green Phase</div>
+        <div class="metric-value" id="metric-active-signal" style="color: #10b981;">--</div>
+        <div class="metric-sub"><i class="fa-solid fa-clock"></i> Dynamic adaptive timer</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-title"><i class="fa-solid fa-truck-medical"></i> Ambulance Status</div>
+        <div class="metric-value" id="metric-ambulance-status" style="font-size: 1.25rem; color: #10b981;">No (Clear)</div>
+        <div class="metric-sub"><i class="fa-solid fa-shield-heart"></i> Preemption monitor</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-title"><i class="fa-solid fa-brain"></i> Predicted Demand</div>
+        <div class="metric-value" id="metric-congestion-level" style="color: #8b5cf6;">MODERATE</div>
+        <div class="metric-sub"><i class="fa-solid fa-forward"></i> +5m to +15m ML forecast</div>
+    </div>
+</div>
+
+<!-- Four-Lane Live Video Monitoring Section -->
+<div class="lanes-grid">
+    <!-- North Lane -->
+    <div class="lane-card">
+        <div class="lane-header">
+            <div class="lane-title">
+                <i class="fa-solid fa-video" style="color: #06b6d4;"></i> NORTH APPROACH (Cam 01)
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span id="signal-pill-north" class="signal-status-pill pill-red">RED --</span>
+                <button class="btn-custom btn-danger" style="padding: 4px 10px; font-size: 0.78rem;" onclick="triggerEmergency('NORTH')" title="Deploy Ambulance on North Lane">
+                    <i class="fa-solid fa-truck-medical"></i> Deploy Ambulance
+                </button>
+            </div>
+        </div>
+        <div class="video-container">
+            <img src="{{ url_for('video_feed', lane='NORTH') }}" class="video-feed" alt="North Live Feed">
+        </div>
+        <div class="lane-telemetry">
+            <div class="telemetry-item">
+                <span class="telemetry-label">Density (Count)</span>
+                <span class="telemetry-val" id="density-idx-north" style="color: #06b6d4;">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Queue Length</span>
+                <span class="telemetry-val" id="queue-len-north">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Ambulance</span>
+                <span class="telemetry-val" id="amb-status-north" style="color: #10b981;">No</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Signal Timer</span>
+                <span class="telemetry-val" id="signal-timer-north">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- East Lane -->
+    <div class="lane-card">
+        <div class="lane-header">
+            <div class="lane-title">
+                <i class="fa-solid fa-video" style="color: #10b981;"></i> EAST APPROACH (Cam 02)
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span id="signal-pill-east" class="signal-status-pill pill-red">RED --</span>
+                <button class="btn-custom btn-danger" style="padding: 4px 10px; font-size: 0.78rem;" onclick="triggerEmergency('EAST')" title="Deploy Ambulance on East Lane">
+                    <i class="fa-solid fa-truck-medical"></i> Deploy Ambulance
+                </button>
+            </div>
+        </div>
+        <div class="video-container">
+            <img src="{{ url_for('video_feed', lane='EAST') }}" class="video-feed" alt="East Live Feed">
+        </div>
+        <div class="lane-telemetry">
+            <div class="telemetry-item">
+                <span class="telemetry-label">Density (Count)</span>
+                <span class="telemetry-val" id="density-idx-east" style="color: #10b981;">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Queue Length</span>
+                <span class="telemetry-val" id="queue-len-east">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Ambulance</span>
+                <span class="telemetry-val" id="amb-status-east" style="color: #10b981;">No</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Signal Timer</span>
+                <span class="telemetry-val" id="signal-timer-east">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- South Lane -->
+    <div class="lane-card">
+        <div class="lane-header">
+            <div class="lane-title">
+                <i class="fa-solid fa-video" style="color: #f59e0b;"></i> SOUTH APPROACH (Cam 03)
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span id="signal-pill-south" class="signal-status-pill pill-red">RED --</span>
+                <button class="btn-custom btn-danger" style="padding: 4px 10px; font-size: 0.78rem;" onclick="triggerEmergency('SOUTH')" title="Deploy Ambulance on South Lane">
+                    <i class="fa-solid fa-truck-medical"></i> Deploy Ambulance
+                </button>
+            </div>
+        </div>
+        <div class="video-container">
+            <img src="{{ url_for('video_feed', lane='SOUTH') }}" class="video-feed" alt="South Live Feed">
+        </div>
+        <div class="lane-telemetry">
+            <div class="telemetry-item">
+                <span class="telemetry-label">Density (Count)</span>
+                <span class="telemetry-val" id="density-idx-south" style="color: #f59e0b;">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Queue Length</span>
+                <span class="telemetry-val" id="queue-len-south">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Ambulance</span>
+                <span class="telemetry-val" id="amb-status-south" style="color: #10b981;">No</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Signal Timer</span>
+                <span class="telemetry-val" id="signal-timer-south">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- West Lane -->
+    <div class="lane-card">
+        <div class="lane-header">
+            <div class="lane-title">
+                <i class="fa-solid fa-video" style="color: #8b5cf6;"></i> WEST APPROACH (Cam 04)
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span id="signal-pill-west" class="signal-status-pill pill-red">RED --</span>
+                <button class="btn-custom btn-danger" style="padding: 4px 10px; font-size: 0.78rem;" onclick="triggerEmergency('WEST')" title="Deploy Ambulance on West Lane">
+                    <i class="fa-solid fa-truck-medical"></i> Deploy Ambulance
+                </button>
+            </div>
+        </div>
+        <div class="video-container">
+            <img src="{{ url_for('video_feed', lane='WEST') }}" class="video-feed" alt="West Live Feed">
+        </div>
+        <div class="lane-telemetry">
+            <div class="telemetry-item">
+                <span class="telemetry-label">Density (Count)</span>
+                <span class="telemetry-val" id="density-idx-west" style="color: #8b5cf6;">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Queue Length</span>
+                <span class="telemetry-val" id="queue-len-west">--</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Ambulance</span>
+                <span class="telemetry-val" id="amb-status-west" style="color: #10b981;">No</span>
+            </div>
+            <div class="telemetry-item">
+                <span class="telemetry-label">Signal Timer</span>
+                <span class="telemetry-val" id="signal-timer-west">--</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Predictive AI Intelligence & Controls Section -->
+<div class="bottom-section">
+    <!-- Proactive Predictive Matrix -->
+    <div class="panel-card">
+        <div class="panel-header">
+            <div class="panel-title">
+                <i class="fa-solid fa-brain" style="color: #06b6d4;"></i> Proactive Predictive Signal Matrix
+            </div>
+            <span style="font-size: 0.78rem; color: #94a3b8;">
+                <i class="fa-solid fa-circle-info"></i> Combines Real-time Edge CV with Diurnal ML Forecasting
+            </span>
+        </div>
+
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Approach</th>
+                    <th>Current Density</th>
+                    <th>+5 Min Forecast</th>
+                    <th>+10 Min Forecast</th>
+                    <th>+15 Min Forecast</th>
+                    <th>AI Priority Score</th>
+                    <th>Allocated Green</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong style="color: #38bdf8;">NORTH</strong></td>
+                    <td id="pred-cur-north">--</td>
+                    <td id="pred-5m-north">--</td>
+                    <td id="pred-10m-north">--</td>
+                    <td id="pred-15m-north">--</td>
+                    <td id="pred-score-north">--</td>
+                    <td><span id="pred-green-north" style="color: #10b981; font-weight: 700;">--</span></td>
+                </tr>
+                <tr>
+                    <td><strong style="color: #10b981;">EAST</strong></td>
+                    <td id="pred-cur-east">--</td>
+                    <td id="pred-5m-east">--</td>
+                    <td id="pred-10m-east">--</td>
+                    <td id="pred-15m-east">--</td>
+                    <td id="pred-score-east">--</td>
+                    <td><span id="pred-green-east" style="color: #10b981; font-weight: 700;">--</span></td>
+                </tr>
+                <tr>
+                    <td><strong style="color: #f59e0b;">SOUTH</strong></td>
+                    <td id="pred-cur-south">--</td>
+                    <td id="pred-5m-south">--</td>
+                    <td id="pred-10m-south">--</td>
+                    <td id="pred-15m-south">--</td>
+                    <td id="pred-score-south">--</td>
+                    <td><span id="pred-green-south" style="color: #10b981; font-weight: 700;">--</span></td>
+                </tr>
+                <tr>
+                    <td><strong style="color: #8b5cf6;">WEST</strong></td>
+                    <td id="pred-cur-west">--</td>
+                    <td id="pred-5m-west">--</td>
+                    <td id="pred-10m-west">--</td>
+                    <td id="pred-15m-west">--</td>
+                    <td id="pred-score-west">--</td>
+                    <td><span id="pred-green-west" style="color: #10b981; font-weight: 700;">--</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Ideathon Live Demonstration Controller -->
+    <div class="panel-card">
+        <div class="panel-header">
+            <div class="panel-title">
+                <i class="fa-solid fa-gamepad" style="color: #f59e0b;"></i> Ideathon Interactive Controls
+            </div>
+        </div>
+
+        <div class="controls-stack">
+            <button class="btn-custom btn-danger" onclick="triggerEmergency('NORTH')" style="justify-content: center;">
+                <i class="fa-solid fa-truck-medical"></i> Trigger Ambulance (North Lane)
+            </button>
+            <button class="btn-custom" onclick="clearEmergency()" style="justify-content: center;">
+                <i class="fa-solid fa-rotate-left"></i> Clear Emergency & Restore Adaptive Flow
+            </button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="btn-custom" onclick="setSimulationMode('PEAK_HOUR')">
+                    <i class="fa-solid fa-arrow-trend-up"></i> Peak Hour Flow
+                </button>
+                <button class="btn-custom" onclick="setSimulationMode('NORMAL')">
+                    <i class="fa-solid fa-equals"></i> Normal Traffic Flow
+                </button>
+            </div>
+            <button id="btn-retrain" class="btn-custom btn-cyan" onclick="retrainPredictor()" style="justify-content: center; margin-top: 4px;">
+                <i class="fa-solid fa-robot"></i> Retrain Random Forest Predictor
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
