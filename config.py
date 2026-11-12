@@ -5,7 +5,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'trafficmind-ai-secret-key-2025-ideathon')
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'trafficmind-ai-secret-key-2025-production')
     
     # Database
     DATABASE_PATH = os.path.join(BASE_DIR, 'database', 'trafficmind.db')

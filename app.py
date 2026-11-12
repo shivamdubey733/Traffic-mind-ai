@@ -381,6 +381,6 @@ if __name__ == '__main__':
     print("=" * 65)
     print("Command Center Dashboard: http://127.0.0.1:5000/dashboard")
     print("Default Login: admin / admin123")
-    print("Ready for Live College Ideathon Demonstration.")
+    print("Ready for Live Demonstration.")
     print("=" * 65)
     socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)

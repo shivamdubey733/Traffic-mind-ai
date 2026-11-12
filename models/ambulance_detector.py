@@ -10,7 +10,7 @@ class AmbulanceDetector:
     Supports:
     1. Custom-trained YOLOv8 ambulance weights (if provided by user in trained_models/ambulance_yolov8.pt)
     2. Computer vision emergency beacon / strobe heuristic (detecting alternating high-intensity red/blue strobe frequency)
-    3. Manual emergency simulation trigger for demonstration and ideathon jury presentations
+    3. Manual emergency simulation trigger for live demonstration presentations
     """
     def __init__(self, model_path=None):
         self.model_path = model_path or Config.AMBULANCE_MODEL_PATH
@@ -69,7 +69,7 @@ class AmbulanceDetector:
         self.active_emergencies[lane] = {
             'lane': lane,
             'detected_at': time.time(),
-            'trigger_type': 'MANUAL_IDEATHON_TRIGGER',
+            'trigger_type': 'MANUAL_OPERATOR_TRIGGER',
             'event_id': event_id
         }
         print(f"[AmbulanceDetector] Emergency vehicle declared on {lane} (Event ID: {event_id})")

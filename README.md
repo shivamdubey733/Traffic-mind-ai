@@ -8,7 +8,7 @@
 
 An end-to-end, functional, AI-powered intelligent traffic management system built for major four-way road intersections. 
 
-Addresses the ideathon challenge:
+Addresses the core urban transportation challenge:
 > *"Traffic congestion at major road intersections: How can traffic flow and road-user safety be improved at major road intersections, particularly during peak hours, through innovative planning and traffic management solutions?"*
 
 ---
@@ -101,9 +101,9 @@ Default Operator Credentials:
 
 ---
 
-## 🚦 Ideathon Live Demonstration Sequence
+## 🚦 Live Demonstration Sequence
 
-For jury evaluation, demonstrate this exact sequence:
+For live evaluation, demonstrate this exact sequence:
 
 1. **Autonomous Live Monitoring**: Open the **Dashboard**. Observe the 4 independent camera feeds (North, East, South, West) running with real-time YOLOv8 bounding boxes, vehicle classifications (`car`, `motorcycle`, `bus`, `truck`, `bicycle`), stop lines, and queue identification.
 2. **Proactive Predictive Forecast**: Scroll to the **Proactive Predictive Matrix**. Show how the AI forecasts traffic volume for +5m, +10m, and +15m based on historical patterns learned in SQLite.

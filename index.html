@@ -656,10 +656,10 @@
         </div>
     </div>
 
-    <!-- Interactive Ideathon Control Deck -->
+    <!-- Interactive Control Deck -->
     <div class="controls-card">
         <div class="controls-title">
-            <i class="fa-solid fa-sliders" style="color: var(--cyan);"></i> Ideathon Live Demonstration Controller
+            <i class="fa-solid fa-sliders" style="color: var(--cyan);"></i> Live Demonstration Controller
         </div>
         <div class="buttons-row">
             <button class="btn btn-red" onclick="triggerAmbulance('NORTH')">
@@ -1436,7 +1436,7 @@
             }
         }
 
-        // Ideathon Live Controls
+        // Live Controls
         function triggerAmbulance(lane) {
             // Just mark emergency active â€” the state machine handles the safe transition:
             // Current lane: GREEN â†’ YELLOW (3s) â†’ ALL_RED (2s) â†’ Ambulance lane: GREEN
