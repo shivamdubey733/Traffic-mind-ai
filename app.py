@@ -377,7 +377,7 @@ def export_csv():
 
 if __name__ == '__main__':
     print("=" * 65)
-    print("🚦  TRAFFICMIND AI – PREDICTIVE INTELLIGENT TRAFFIC MANAGEMENT  🚦")
+    print("🚦  TRAFFICMIND AI - PREDICTIVE INTELLIGENT TRAFFIC MANAGEMENT  🚦")
     print("=" * 65)
     print("Command Center Dashboard: http://127.0.0.1:5000/dashboard")
     print("Default Login: admin / admin123")

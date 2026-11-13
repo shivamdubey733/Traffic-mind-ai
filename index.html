@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -481,7 +481,7 @@
     <header class="dash-header">
         <h1 class="dash-title">
             <i class="fa-solid fa-traffic-light" style="color: var(--cyan);"></i>
-            TrafficMind <span>AI</span> â€“ Live Traffic Dashboard
+            TrafficMind <span>AI</span> - Live Traffic Dashboard
             <span class="version-pill"><i class="fa-solid fa-check"></i> v2.5 PHOTOREALISTIC VEHICLES</span>
         </h1>
         <p class="dash-sub">Predictive Intelligent Traffic Management System &bull; 4-Way Intersection AI Signal Controller</p>
@@ -700,6 +700,7 @@
                     <tr>
                         <th>Corridor</th>
                         <th>Live Density</th>
+                        <th>Total Density</th>
                         <th>+5 Min Forecast</th>
                         <th>+10 Min Forecast</th>
                         <th>+15 Min Forecast</th>
@@ -711,6 +712,7 @@
                     <tr>
                         <td><strong style="color: var(--cyan);">LANE 1 (NORTH)</strong></td>
                         <td id="row-north-cur">19</td>
+                        <td><strong id="row-north-total" style="color: var(--cyan);">20</strong></td>
                         <td id="row-north-5m">24</td>
                         <td id="row-north-10m">29</td>
                         <td id="row-north-15m">35</td>
@@ -720,6 +722,7 @@
                     <tr>
                         <td><strong style="color: var(--cyan);">LANE 3 (WEST)</strong></td>
                         <td id="row-west-cur">15</td>
+                        <td><strong id="row-west-total" style="color: var(--cyan);">17</strong></td>
                         <td id="row-west-5m">18</td>
                         <td id="row-west-10m">23</td>
                         <td id="row-west-15m">27</td>
@@ -729,6 +732,7 @@
                     <tr>
                         <td><strong style="color: var(--cyan);">LANE 4 (EAST)</strong></td>
                         <td id="row-east-cur">10</td>
+                        <td><strong id="row-east-total" style="color: var(--cyan);">14</strong></td>
                         <td id="row-east-5m">14</td>
                         <td id="row-east-10m">17</td>
                         <td id="row-east-15m">21</td>
@@ -738,6 +742,7 @@
                     <tr>
                         <td><strong style="color: var(--cyan);">LANE 2 (SOUTH)</strong></td>
                         <td id="row-south-cur">6</td>
+                        <td><strong id="row-south-total" style="color: var(--cyan);">10</strong></td>
                         <td id="row-south-5m">8</td>
                         <td id="row-south-10m">9</td>
                         <td id="row-south-15m">12</td>
@@ -800,10 +805,10 @@
             emergency: { active: false, lane: null, transitioning: false },
             mode: 'NORMAL',
             lanes: {
-                'NORTH': { targetDensity: 19, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
-                'EAST': { targetDensity: 10, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
-                'SOUTH': { targetDensity: 6, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
-                'WEST': { targetDensity: 15, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 }
+                'NORTH': { targetDensity: 19, maxQueue: 20, arrivalRate: 0.26, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
+                'EAST': { targetDensity: 11, maxQueue: 14, arrivalRate: 0.18, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
+                'SOUTH': { targetDensity: 7, maxQueue: 10, arrivalRate: 0.14, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 },
+                'WEST': { targetDensity: 15, maxQueue: 17, arrivalRate: 0.22, vehicles: [], waitSeconds: 0, isAccident: false, isBlocked: false, blockedCooldown: 0, greenElapsed: 0, greenFlowCount: 0 }
             }
         };
 
@@ -890,7 +895,7 @@
 
         function updatePhysics() {
             const canvasH = 420;
-            // Vehicles move DOWNWARD. Sprites have front at top, so rotate 180Â° when drawing.
+            // Vehicles move DOWNWARD. Sprites have front at top, so rotate 180° when drawing.
             const stopLineY = 195;
 
             LANES.forEach(lane => {
@@ -939,14 +944,34 @@
                 // Remove vehicles that passed the bottom
                 state.lanes[lane].vehicles = vList.filter(v => v.y < 430);
 
-                // Spawn new vehicles at the top
-                const target = state.mode === 'PEAK' ? Math.floor(state.lanes[lane].targetDensity * 1.4) : state.lanes[lane].targetDensity;
-                if (state.lanes[lane].vehicles.length < target && Math.random() < 0.28) {
-                    for (let t = 0; t < 3; t++) {
-                        const hasNearTop = vList.some(v => v.track === t && v.y < 70);
-                        if (!hasNearTop) {
-                            spawnVehicle(lane, false, 8, t);
-                            break;
+                // Realistic Dynamic Traffic Inflow/Outflow:
+                // - GREEN / YELLOW Lane: Vehicles exit intersection; density drains down to clear the queue
+                // - RED Lanes: Vehicles are halted at stop line; incoming traffic accumulates in queue
+                const isGreenOrYellow = (state.activeLane === lane && (state.signalState === 'GREEN' || state.signalState === 'YELLOW'));
+                const vCount = state.lanes[lane].vehicles.length;
+
+                if (isGreenOrYellow) {
+                    // Draining phase: only spawn a sparse vehicle if queue has completely cleared below 3
+                    if (vCount < 3 && Math.random() < 0.05) {
+                        for (let t = 0; t < 3; t++) {
+                            const hasNearTop = vList.some(v => v.track === t && v.y < 80);
+                            if (!hasNearTop) {
+                                spawnVehicle(lane, false, 8, t);
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    // Accumulation phase: incoming traffic steadily arrives and queues up while RED
+                    const maxCap = state.mode === 'PEAK' ? Math.floor(laneObj.maxQueue * 1.35) : laneObj.maxQueue;
+                    const arrRate = laneObj.arrivalRate || 0.20;
+                    if (vCount < maxCap && Math.random() < arrRate) {
+                        for (let t = 0; t < 3; t++) {
+                            const hasNearTop = vList.some(v => v.track === t && v.y < 80);
+                            if (!hasNearTop) {
+                                spawnVehicle(lane, false, 8, t);
+                                break;
+                            }
                         }
                     }
                 }
@@ -964,8 +989,15 @@
                         const lB = LANES[j];
                         if (state.lanes[lA].vehicles.length === state.lanes[lB].vehicles.length) {
                             hasDuplicate = true;
-                            const higher = state.lanes[lA].targetDensity >= state.lanes[lB].targetDensity ? lA : lB;
-                            spawnVehicle(higher, false, Math.random() * 15 + 5, Math.floor(Math.random() * 3));
+                            // Add an arrival to the lane that is at RED with higher arrival demand
+                            const aIsRed = state.activeLane !== lA;
+                            const bIsRed = state.activeLane !== lB;
+                            let boost = lA;
+                            if (aIsRed && !bIsRed) boost = lA;
+                            else if (!aIsRed && bIsRed) boost = lB;
+                            else boost = state.lanes[lA].arrivalRate >= state.lanes[lB].arrivalRate ? lA : lB;
+
+                            spawnVehicle(boost, false, Math.random() * 15 + 5, Math.floor(Math.random() * 3));
                         }
                     }
                 }
@@ -1130,9 +1162,9 @@
                 // Directional Turn Arrows painted on road (vehicles move DOWNWARD)
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
                 ctx.font = '14px sans-serif';
-                ctx.fillText('â†²', 110, 160);
-                ctx.fillText('â†“', 240, 160);
-                ctx.fillText('â†³', 370, 160);
+                ctx.fillText('↲', 110, 160);
+                ctx.fillText('↓', 240, 160);
+                ctx.fillText('↳', 370, 160);
 
                 // 2. Render Photorealistic Vehicles & YOLO Bounding Boxes
                 const vList = state.lanes[lane].vehicles;
@@ -1140,7 +1172,7 @@
                     const cx = v.x + v.w / 2;
                     const cy = v.y + v.l / 2;
 
-                    // Headlight glow â€” projects DOWNWARD (front of rotated sprite faces down)
+                    // Headlight glow - projects DOWNWARD (front of rotated sprite faces down)
                     ctx.save();
                     ctx.fillStyle = 'rgba(254, 240, 138, 0.16)';
                     ctx.beginPath();
@@ -1173,11 +1205,11 @@
                         ctx.restore();
                     }
 
-                    // Draw sprite ROTATED 180Â° so front (top of SVG) faces DOWN (direction of travel)
+                    // Draw sprite ROTATED 180° so front (top of SVG) faces DOWN (direction of travel)
                     const sprite = window.VEHICLE_SPRITES ? window.VEHICLE_SPRITES[v.spriteKey] : null;
                     ctx.save();
                     ctx.translate(cx, cy);
-                    ctx.rotate(Math.PI); // 180Â° flip
+                    ctx.rotate(Math.PI); // 180° flip
                     if (sprite && sprite.complete && sprite.naturalWidth > 0) {
                         ctx.drawImage(sprite, -v.w / 2, -v.l / 2, v.w, v.l);
                     } else {
@@ -1207,8 +1239,8 @@
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     const statusLabel = state.lanes[lane].isBlocked
-                        ? `ðŸš§ ZERO-FLOW BYPASS (COOLDOWN ${state.lanes[lane].blockedCooldown}s)`
-                        : 'ðŸš§ ACCIDENT / LANE BLOCKED';
+                        ? `🚧 ZERO-FLOW BYPASS (COOLDOWN ${state.lanes[lane].blockedCooldown}s)`
+                        : '🚧 ACCIDENT / LANE BLOCKED';
                     ctx.fillText(statusLabel, w / 2, 187);
                     ctx.restore();
                 }
@@ -1247,19 +1279,19 @@
 
             if (state.emergency.active) {
                 // --- AMBULANCE SAFE TRANSITION LOGIC ---
-                // Phase 1: If currently GREEN on a DIFFERENT lane â†’ force YELLOW first
+                // Phase 1: If currently GREEN on a DIFFERENT lane → force YELLOW first
                 if (state.signalState === 'GREEN' && state.activeLane !== state.emergency.lane) {
                     state.signalState = 'YELLOW';
                     state.timer = 3; // 3-second yellow warning for current green lane
                 }
-                // Phase 2: After YELLOW â†’ ALL_RED clearance buffer
+                // Phase 2: After YELLOW → ALL_RED clearance buffer
                 else if (state.signalState === 'YELLOW') {
                     if (state.timer <= 0) {
                         state.signalState = 'ALL_RED';
                         state.timer = 2; // 2-second all-red so intersection clears
                     }
                 }
-                // Phase 3: After ALL_RED â†’ give ambulance lane GREEN
+                // Phase 3: After ALL_RED → give ambulance lane GREEN
                 else if (state.signalState === 'ALL_RED') {
                     if (state.timer <= 0) {
                         state.activeLane = state.emergency.lane;
@@ -1270,7 +1302,7 @@
                         state.timer = 20;
                     }
                 }
-                // Phase 4: Ambulance lane already GREEN â†’ keep it green (refresh timer if expired)
+                // Phase 4: Ambulance lane already GREEN → keep it green (refresh timer if expired)
                 else if (state.signalState === 'GREEN' && state.activeLane === state.emergency.lane) {
                     if (state.timer <= 0) state.timer = 20;
                 }
@@ -1417,6 +1449,11 @@
 
                 const rowCur = document.getElementById(`row-${lane.toLowerCase()}-cur`);
                 if (rowCur) rowCur.textContent = count;
+                const rowTotal = document.getElementById(`row-${lane.toLowerCase()}-total`);
+                if (rowTotal) {
+                    const laneMax = state.mode === 'PEAK' ? Math.floor(state.lanes[lane].maxQueue * 1.35) : state.lanes[lane].maxQueue;
+                    rowTotal.textContent = laneMax;
+                }
             });
 
             document.getElementById('totalVehicles').textContent = totalCount;
@@ -1449,11 +1486,11 @@
                 alertBanner.style.borderColor = '';
                 // Show phase-specific message
                 if (state.signalState === 'YELLOW' && state.activeLane !== state.emergency.lane) {
-                    alertBannerText.textContent = `âš ï¸ AMBULANCE INCOMING on ${LANE_NAMES[state.emergency.lane]}! Clearing current lane â€” YELLOW warning (${state.timer}s)...`;
+                    alertBannerText.textContent = `⚠️ AMBULANCE INCOMING on ${LANE_NAMES[state.emergency.lane]}! Clearing current lane - YELLOW warning (${state.timer}s)...`;
                 } else if (state.signalState === 'ALL_RED') {
-                    alertBannerText.textContent = `ðŸ”´ ALL-RED SAFETY BUFFER â€” Clearing intersection for ambulance on ${LANE_NAMES[state.emergency.lane]} (${state.timer}s)...`;
+                    alertBannerText.textContent = `🔴 ALL-RED SAFETY BUFFER - Clearing intersection for ambulance on ${LANE_NAMES[state.emergency.lane]} (${state.timer}s)...`;
                 } else {
-                    alertBannerText.textContent = `ðŸš¨ EMERGENCY PREEMPTION ACTIVE: Ambulance on ${LANE_NAMES[state.emergency.lane]} (${state.emergency.lane}) â€” Green Corridor Open!`;
+                    alertBannerText.textContent = `🚨 EMERGENCY PREEMPTION ACTIVE: Ambulance on ${LANE_NAMES[state.emergency.lane]} (${state.emergency.lane}) - Green Corridor Open!`;
                 }
             } else if (blockedLanes.length > 0) {
                 ambStatusEl.textContent = 'No (Clear)';
@@ -1464,9 +1501,9 @@
                 const bLane = blockedLanes[0];
                 const bObj = state.lanes[bLane];
                 if (bObj.isBlocked) {
-                    alertBannerText.textContent = `ðŸš§ ZERO-FLOW INCIDENT DETECTED ON ${bLane} (${LANE_NAMES[bLane]}) â€” Quarantine active (${bObj.blockedCooldown}s), routing green to healthy lanes!`;
+                    alertBannerText.textContent = `🚧 ZERO-FLOW INCIDENT DETECTED ON ${bLane} (${LANE_NAMES[bLane]}) - Quarantine active (${bObj.blockedCooldown}s), routing green to healthy lanes!`;
                 } else {
-                    alertBannerText.textContent = `ðŸš§ ACCIDENT ON ${bLane} (${LANE_NAMES[bLane]}) â€” Monitoring outflow; AI will cut off & bypass if vehicles cannot move...`;
+                    alertBannerText.textContent = `🚧 ACCIDENT ON ${bLane} (${LANE_NAMES[bLane]}) - Monitoring outflow; AI will cut off & bypass if vehicles cannot move...`;
                 }
             } else {
                 ambStatusEl.textContent = 'No (Clear)';
@@ -1479,10 +1516,10 @@
 
         // Live Controls
         function triggerAmbulance(lane) {
-            // Just mark emergency active â€” the state machine handles the safe transition:
-            // Current lane: GREEN â†’ YELLOW (3s) â†’ ALL_RED (2s) â†’ Ambulance lane: GREEN
+            // Just mark emergency active - the state machine handles the safe transition:
+            // Current lane: GREEN -> YELLOW (3s) -> ALL_RED (2s) -> Ambulance lane: GREEN
             state.emergency = { active: true, lane: lane, transitioning: false };
-            // Do NOT force signal state here â€” let the safe transition logic take over
+            // Do NOT force signal state here - let the safe transition logic take over
 
             // Spawn ambulance near the top of the approach
             spawnVehicle(lane, true, 12, 1);
@@ -1563,4 +1600,3 @@
     </script>
 </body>
 </html>
-
